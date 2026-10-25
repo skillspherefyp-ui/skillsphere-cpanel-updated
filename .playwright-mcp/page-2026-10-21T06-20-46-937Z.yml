@@ -1,0 +1,227 @@
+- generic [active] [ref=f15e1]:
+  - generic [ref=f15e4]:
+    - generic [ref=f15e19]:
+      - generic [ref=f15e20]:
+        - generic [ref=f15e21] [cursor=pointer]: 
+        - generic [ref=f15e23]: SKILLSPHERE
+        - generic [ref=f15e27] [cursor=pointer]: 
+      - generic [ref=f15e30]:
+        - generic [ref=f15e33]:
+          - generic [ref=f15e34]:
+            - generic [ref=f15e35] [cursor=pointer]:
+              - generic [ref=f15e36]: 
+              - generic [ref=f15e37]: Password
+            - generic [ref=f15e38] [cursor=pointer]:
+              - generic [ref=f15e39]: 
+              - generic [ref=f15e40]: Email Code
+          - generic [ref=f15e41]:
+            - generic [ref=f15e42]: 
+            - textbox "Email address" [ref=f15e43]
+          - generic [ref=f15e44]:
+            - generic [ref=f15e45]: 
+            - textbox "Password" [ref=f15e46]
+            - generic [ref=f15e47] [cursor=pointer]: 
+          - generic [ref=f15e49] [cursor=pointer]: Forgot Password?
+          - generic [ref=f15e51] [cursor=pointer]: Sign In
+          - generic [ref=f15e53]: or continue with
+          - generic [ref=f15e57] [cursor=pointer]:
+            - generic [ref=f15e58]: 
+            - generic [ref=f15e59]: Continue with Google
+          - generic [ref=f15e60]: By signing in, you agree to our Terms of Service and Privacy Policy
+        - generic:
+          - generic:
+            - generic:
+              - generic:
+                - generic: 
+                - textbox "Full name"
+              - generic:
+                - generic: 
+                - textbox "Email address"
+              - generic: Continue
+              - generic: or continue with
+              - generic:
+                - generic: 
+                - generic: Continue with Google
+              - generic: By creating an account, you agree to our Terms of Service and Privacy Policy. You will also be subscribed to the SkillSphere newsletter. You can unsubscribe at any time.
+        - generic [ref=f15e61]:
+          - generic [ref=f15e65]:
+            - generic [ref=f15e66]:
+              - generic [ref=f15e67]: 
+              - generic [ref=f15e69]: Welcome Back
+              - generic [ref=f15e70]: Sign in to continue your learning journey
+            - generic [ref=f15e71]:
+              - generic [ref=f15e72]: Don't have an account?
+              - generic [ref=f15e73] [cursor=pointer]: Create Account
+          - generic:
+            - generic:
+              - generic: 
+              - generic: Create Account
+              - generic: Start your learning journey today
+            - generic:
+              - generic: Already have an account?
+              - generic: Sign In
+    - generic: 
+  - generic [aria-hidden] [ref=f15e79]:
+    - heading [level=1] [ref=f15e80]: SkillSphere - Online Courses & AI Learning Platform Pakistan
+    - heading [level=2] [ref=f15e81]: "Pakistan's #1 AI-Powered Online Learning Platform"
+    - paragraph [ref=f15e82]: SkillSphere is Pakistan's leading online education and e-learning platform. We offer AI-powered courses, expert-led training, personalized AI tutors, and verified certificates. Learn new skills online from anywhere in Pakistan at your own pace.
+    - heading [level=2] [ref=f15e83]: SkillSphere Courses
+    - paragraph [ref=f15e84]: SkillSphere offers hundreds of online courses across multiple categories. Browse SkillSphere courses in technology, cybersecurity, programming, business, design, and more.
+    - heading [level=2] [ref=f15e85]: Programming & Software Development Courses
+    - list [ref=f15e86]:
+      - listitem [ref=f15e87]: Python Programming for Beginners
+      - listitem [ref=f15e88]: Advanced Python Development
+      - listitem [ref=f15e89]: JavaScript Full Stack Development
+      - listitem [ref=f15e90]: React.js and React Native Development
+      - listitem [ref=f15e91]: Node.js Backend Development
+      - listitem [ref=f15e92]: Web Development Bootcamp
+      - listitem [ref=f15e93]: HTML, CSS and JavaScript for Beginners
+      - listitem [ref=f15e94]: PHP and MySQL Development
+      - listitem [ref=f15e95]: Java Programming
+      - listitem [ref=f15e96]: C++ Programming
+      - listitem [ref=f15e97]: C# and .NET Development
+      - listitem [ref=f15e98]: Flutter Mobile App Development
+      - listitem [ref=f15e99]: Android App Development
+      - listitem [ref=f15e100]: iOS App Development with Swift
+      - listitem [ref=f15e101]: REST API Development
+      - listitem [ref=f15e102]: Database Design and SQL
+      - listitem [ref=f15e103]: MongoDB and NoSQL Databases
+      - listitem [ref=f15e104]: Git and GitHub for Developers
+      - listitem [ref=f15e105]: Docker and Kubernetes
+      - listitem [ref=f15e106]: DevOps Engineering
+      - listitem [ref=f15e107]: Cloud Computing with AWS
+      - listitem [ref=f15e108]: Microsoft Azure Fundamentals
+      - listitem [ref=f15e109]: Google Cloud Platform
+      - listitem [ref=f15e110]: Software Engineering Principles
+      - listitem [ref=f15e111]: System Design and Architecture
+    - heading [level=2] [ref=f15e112]: Cybersecurity & Ethical Hacking Courses
+    - list [ref=f15e113]:
+      - listitem [ref=f15e114]: Ethical Hacking for Beginners
+      - listitem [ref=f15e115]: Advanced Ethical Hacking
+      - listitem [ref=f15e116]: Penetration Testing
+      - listitem [ref=f15e117]: Cybersecurity Fundamentals
+      - listitem [ref=f15e118]: Network Security
+      - listitem [ref=f15e119]: Web Application Security
+      - listitem [ref=f15e120]: OWASP Top 10 Vulnerabilities
+      - listitem [ref=f15e121]: Kali Linux for Hackers
+      - listitem [ref=f15e122]: Bug Bounty Hunting
+      - listitem [ref=f15e123]: Malware Analysis
+      - listitem [ref=f15e124]: Digital Forensics
+      - listitem [ref=f15e125]: Incident Response
+      - listitem [ref=f15e126]: Security Operations Center (SOC)
+      - listitem [ref=f15e127]: CEH Certification Preparation
+      - listitem [ref=f15e128]: CompTIA Security+ Preparation
+      - listitem [ref=f15e129]: OSCP Preparation
+      - listitem [ref=f15e130]: Social Engineering and Phishing
+      - listitem [ref=f15e131]: Wireless Network Hacking
+      - listitem [ref=f15e132]: Cryptography Fundamentals
+      - listitem [ref=f15e133]: Dark Web and OSINT
+      - listitem [ref=f15e134]: Firewall and VPN Configuration
+      - listitem [ref=f15e135]: Cloud Security
+    - heading [level=2] [ref=f15e136]: Data Science & Artificial Intelligence Courses
+    - list [ref=f15e137]:
+      - listitem [ref=f15e138]: Data Science for Beginners
+      - listitem [ref=f15e139]: Machine Learning with Python
+      - listitem [ref=f15e140]: Deep Learning and Neural Networks
+      - listitem [ref=f15e141]: Artificial Intelligence Fundamentals
+      - listitem [ref=f15e142]: Natural Language Processing (NLP)
+      - listitem [ref=f15e143]: Computer Vision
+      - listitem [ref=f15e144]: Data Analysis with Pandas
+      - listitem [ref=f15e145]: Data Visualization with Matplotlib
+      - listitem [ref=f15e146]: TensorFlow and Keras
+      - listitem [ref=f15e147]: PyTorch for Deep Learning
+      - listitem [ref=f15e148]: Big Data with Hadoop and Spark
+      - listitem [ref=f15e149]: Business Intelligence and Power BI
+      - listitem [ref=f15e150]: Tableau for Data Visualization
+      - listitem [ref=f15e151]: Statistics for Data Science
+      - listitem [ref=f15e152]: AI Chatbot Development
+      - listitem [ref=f15e153]: Generative AI and ChatGPT
+      - listitem [ref=f15e154]: Prompt Engineering
+    - heading [level=2] [ref=f15e155]: Networking & IT Courses
+    - list [ref=f15e156]:
+      - listitem [ref=f15e157]: Computer Networking Fundamentals
+      - listitem [ref=f15e158]: CCNA Cisco Networking
+      - listitem [ref=f15e159]: Network Administration
+      - listitem [ref=f15e160]: Linux System Administration
+      - listitem [ref=f15e161]: Windows Server Administration
+      - listitem [ref=f15e162]: IT Support and Help Desk
+      - listitem [ref=f15e163]: CompTIA A+ Certification
+      - listitem [ref=f15e164]: CompTIA Network+ Certification
+      - listitem [ref=f15e165]: Virtualization with VMware
+      - listitem [ref=f15e166]: IoT Internet of Things
+    - heading [level=2] [ref=f15e167]: Business & Management Courses
+    - list [ref=f15e168]:
+      - listitem [ref=f15e169]: Business Management Fundamentals
+      - listitem [ref=f15e170]: Project Management Professional (PMP)
+      - listitem [ref=f15e171]: Agile and Scrum Methodology
+      - listitem [ref=f15e172]: Entrepreneurship and Startup
+      - listitem [ref=f15e173]: Financial Accounting
+      - listitem [ref=f15e174]: QuickBooks Accounting Software
+      - listitem [ref=f15e175]: Human Resource Management
+      - listitem [ref=f15e176]: Supply Chain Management
+      - listitem [ref=f15e177]: E-commerce Business
+      - listitem [ref=f15e178]: Dropshipping Business Pakistan
+      - listitem [ref=f15e179]: Amazon FBA for Pakistanis
+      - listitem [ref=f15e180]: Freelancing on Upwork and Fiverr
+      - listitem [ref=f15e181]: Business Communication
+      - listitem [ref=f15e182]: Leadership and Management Skills
+    - heading [level=2] [ref=f15e183]: Digital Marketing Courses
+    - list [ref=f15e184]:
+      - listitem [ref=f15e185]: Digital Marketing Complete Course
+      - listitem [ref=f15e186]: Search Engine Optimization (SEO)
+      - listitem [ref=f15e187]: Google Ads and PPC Advertising
+      - listitem [ref=f15e188]: Facebook and Instagram Marketing
+      - listitem [ref=f15e189]: Social Media Marketing
+      - listitem [ref=f15e190]: Content Marketing
+      - listitem [ref=f15e191]: Email Marketing
+      - listitem [ref=f15e192]: Affiliate Marketing
+      - listitem [ref=f15e193]: YouTube Marketing
+      - listitem [ref=f15e194]: TikTok Marketing
+      - listitem [ref=f15e195]: Shopify and E-commerce Marketing
+      - listitem [ref=f15e196]: Brand Building and Strategy
+    - heading [level=2] [ref=f15e197]: Graphic Design & Creative Courses
+    - list [ref=f15e198]:
+      - listitem [ref=f15e199]: Graphic Design for Beginners
+      - listitem [ref=f15e200]: Adobe Photoshop Complete Course
+      - listitem [ref=f15e201]: Adobe Illustrator
+      - listitem [ref=f15e202]: Adobe Premiere Pro Video Editing
+      - listitem [ref=f15e203]: UI UX Design
+      - listitem [ref=f15e204]: Figma for Designers
+      - listitem [ref=f15e205]: Logo Design
+      - listitem [ref=f15e206]: 3D Modeling with Blender
+      - listitem [ref=f15e207]: Motion Graphics and Animation
+      - listitem [ref=f15e208]: Photography and Photo Editing
+      - listitem [ref=f15e209]: Canva for Beginners
+    - heading [level=2] [ref=f15e210]: Language & Soft Skills Courses
+    - list [ref=f15e211]:
+      - listitem [ref=f15e212]: English Speaking Course Pakistan
+      - listitem [ref=f15e213]: IELTS Preparation
+      - listitem [ref=f15e214]: Business English
+      - listitem [ref=f15e215]: Communication Skills
+      - listitem [ref=f15e216]: Public Speaking
+      - listitem [ref=f15e217]: Personality Development
+      - listitem [ref=f15e218]: Time Management
+      - listitem [ref=f15e219]: Critical Thinking
+      - listitem [ref=f15e220]: Interview Preparation Pakistan
+      - listitem [ref=f15e221]: CV and Resume Writing
+    - heading [level=2] [ref=f15e222]: SkillSphere AI Tutor
+    - paragraph [ref=f15e223]: SkillSphere's built-in AI tutor teaches you step by step with personalized lessons, AI-generated quizzes, interactive slides, and real-time Q&A. Our AI tutor adapts to your learning speed and helps you master any skill faster than traditional methods.
+    - heading [level=2] [ref=f15e224]: SkillSphere Certificates
+    - paragraph [ref=f15e225]: Earn verified completion certificates from SkillSphere after finishing any course. SkillSphere certificates are recognized by employers and can be shared on LinkedIn and your resume to boost your career in Pakistan.
+    - heading [level=2] [ref=f15e226]: Why Choose SkillSphere?
+    - list [ref=f15e227]:
+      - listitem [ref=f15e228]: AI-powered personalized learning experience
+      - listitem [ref=f15e229]: Expert instructors from Pakistan and around the world
+      - listitem [ref=f15e230]: Learn at your own pace from anywhere in Pakistan
+      - listitem [ref=f15e231]: Earn verified certificates on course completion
+      - listitem [ref=f15e232]: Affordable online courses for Pakistani students
+      - listitem [ref=f15e233]: Mobile-friendly — learn on phone, tablet or computer
+      - listitem [ref=f15e234]: Interactive quizzes and AI-generated assessments
+      - listitem [ref=f15e235]: Gamified learning with streaks and progress tracking
+      - listitem [ref=f15e236]: Courses in Urdu and English
+      - listitem [ref=f15e237]: Best online learning platform in Pakistan
+    - heading [level=2] [ref=f15e238]: Who is SkillSphere For?
+    - paragraph [ref=f15e239]: SkillSphere is for university students, college students, working professionals, fresh graduates, freelancers, job seekers, and anyone in Pakistan who wants to learn new skills, advance their career, or start a business online. Whether you are in Karachi, Lahore, Islamabad, Rawalpindi, Peshawar, Quetta, Multan, Faisalabad or any city in Pakistan — SkillSphere is for you.
+    - heading [level=2] [ref=f15e240]: Start Learning on SkillSphere Today
+    - paragraph [ref=f15e241]: Join SkillSphere now and start your learning journey. Sign up for free, browse SkillSphere courses, learn with AI tutors, and earn certificates. SkillSphere is the best online learning platform in Pakistan for skill development, career growth, and professional training.
+    - paragraph [ref=f15e242]: Visit skillsphere.com.pk to get started.

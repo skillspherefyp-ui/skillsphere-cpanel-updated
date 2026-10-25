@@ -182,88 +182,126 @@ const hBarStyles = StyleSheet.create({
 // REDESIGNED DASHBOARD STAT CARD COMPONENT
 // ============================================
 
-const DashboardStatCard = ({ icon, iconColor, value, label, change, theme, isDark, style }) => {
-  const isPositive = change && change.startsWith('+');
+const DashboardStatCard = ({ icon, iconColor, value, label, change, theme, isDark, style, onPress }) => {
+  const { width } = useWindowDimensions();
+  const isMobile = width <= 480;
+  const isWeb = Platform.OS === 'web';
+  const isPositive = !change || change.startsWith('+');
+  const changeColor = isPositive ? '#10B981' : '#EF4444';
+  const changeIcon  = isPositive ? 'trending-up' : 'trending-down';
+  const Wrapper = onPress ? TouchableOpacity : View;
 
   return (
-    <View
+    <Wrapper
+      activeOpacity={0.8}
+      onPress={onPress}
       style={[
         dsc.card,
         {
-          backgroundColor: isDark ? theme.colors.card : '#FFFFFF',
-          borderColor: isDark ? theme.colors.border : '#EEEEEE',
-          borderTopColor: iconColor,
+          backgroundColor: isDark ? `${iconColor}14` : `${iconColor}0d`,
+          borderColor: `${iconColor}30`,
+          borderLeftColor: iconColor,
         },
+        isWeb && !isDark ? { boxShadow: '0 4px 20px rgba(0,0,0,0.06)' } : {},
         style,
       ]}
     >
-      <View style={dsc.top}>
-        <View style={[dsc.iconCircle, { backgroundColor: iconColor + '18' }]}>
-          <Icon name={icon} size={17} color={iconColor} />
+      {/* Watermark icon — large, faint, top-right corner */}
+      <View style={dsc.watermark} pointerEvents="none">
+        <Icon name={icon} size={72} color={iconColor} style={{ opacity: 0.08 }} />
+      </View>
+
+      {/* Top row: small icon badge + label + chevron */}
+      <View style={dsc.topRow}>
+        <View style={[dsc.iconBadge, { backgroundColor: `${iconColor}22` }]}>
+          <Icon name={icon} size={15} color={iconColor} />
         </View>
-        <Text style={[dsc.label, { color: theme.colors.textSecondary }]} numberOfLines={1}>
+        <Text style={[dsc.label, { color: isDark ? `${iconColor}cc` : `${iconColor}bb` }]} numberOfLines={1}>
           {label}
         </Text>
+        {onPress && <Icon name="chevron-forward" size={13} color={`${iconColor}80`} />}
       </View>
-      <Text style={[dsc.value, { color: isDark ? '#FFFFFF' : '#1A1A2E' }]}>
+
+      {/* Value */}
+      <Text
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.6}
+        style={[dsc.value, {
+          color: isDark ? '#FFFFFF' : '#0F172A',
+          fontSize: isMobile ? 28 : 36,
+        }]}
+      >
         {typeof value === 'number' ? value.toLocaleString() : value}
       </Text>
-      {change && (
-        <View style={dsc.changeRow}>
-          <View style={[dsc.changeDot, { backgroundColor: isPositive ? '#10B981' : '#EF4444' }]} />
-          <Text style={[dsc.change, { color: isPositive ? '#10B981' : '#EF4444' }]}>
-            {change} from last month
-          </Text>
+
+      {/* Change badge */}
+      {change ? (
+        <View style={[dsc.badge, { backgroundColor: `${changeColor}18`, borderColor: `${changeColor}30` }]}>
+          <Icon name={changeIcon} size={12} color={changeColor} />
+          <Text style={[dsc.badgeText, { color: changeColor }]}>{change} vs last month</Text>
         </View>
+      ) : (
+        <View style={dsc.badgePlaceholder} />
       )}
-    </View>
+    </Wrapper>
   );
 };
 
 const dsc = StyleSheet.create({
   card: {
-    padding: 16,
+    padding: 18,
     borderRadius: 16,
-    borderWidth: 1.5,
-    borderTopWidth: 3,
+    borderWidth: 1,
+    borderLeftWidth: 4,
+    overflow: 'hidden',
+    position: 'relative',
   },
-  top: {
+  watermark: {
+    position: 'absolute',
+    top: -8,
+    right: -8,
+  },
+  topRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginBottom: 12,
+    marginBottom: 14,
+  },
+  iconBadge: {
+    width: 30,
+    height: 30,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   label: {
-    fontSize: 13,
-    fontWeight: '600',
+    fontSize: 12,
+    fontWeight: '700',
     flex: 1,
-  },
-  iconCircle: {
-    width: 34,
-    height: 34,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
+    letterSpacing: 0.2,
   },
   value: {
-    fontSize: 34,
     fontWeight: '900',
-    marginBottom: 6,
-    letterSpacing: -0.5,
+    letterSpacing: -1,
+    marginBottom: 12,
   },
-  changeRow: {
+  badge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
+    alignSelf: 'flex-start',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 20,
+    borderWidth: 1,
   },
-  changeDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
+  badgeText: {
+    fontSize: 11,
+    fontWeight: '700',
   },
-  change: {
-    fontSize: 12,
-    fontWeight: '600',
+  badgePlaceholder: {
+    height: 26,
   },
 });
 
@@ -348,8 +386,6 @@ const AdminDashboard = () => {
   const handleNavigate = (route) => {
     if (route === 'ManageInstructors') {
       navigation.navigate('ManageUsers', { userType: 'instructor' });
-    } else if (route === 'ManageExperts') {
-      navigation.navigate('ManageUsers', { userType: 'expert' });
     } else if (route === 'Categories') {
       navigation.navigate('CategoryManagement');
     } else {
@@ -546,16 +582,7 @@ const AdminDashboard = () => {
             theme={theme}
             isDark={isDark}
             style={styles.statCard}
-          />
-          <DashboardStatCard
-            icon="shield-checkmark-outline"
-            iconColor="#8B5CF6"
-            value={stats.totalExperts}
-            label="Total Experts"
-            change={stats.expertChange}
-            theme={theme}
-            isDark={isDark}
-            style={styles.statCard}
+            onPress={() => navigation.navigate('ManageUsers', { userType: 'instructor' })}
           />
           <DashboardStatCard
             icon="book-outline"
@@ -566,6 +593,7 @@ const AdminDashboard = () => {
             theme={theme}
             isDark={isDark}
             style={styles.statCard}
+            onPress={() => navigation.navigate('Courses')}
           />
           <DashboardStatCard
             icon="school-outline"
@@ -576,6 +604,7 @@ const AdminDashboard = () => {
             theme={theme}
             isDark={isDark}
             style={styles.statCard}
+            onPress={() => navigation.navigate('StudentList')}
           />
         </View>
 
@@ -685,18 +714,6 @@ const AdminDashboard = () => {
                   </Text>
                   <Text style={[styles.insightMetricLabel, { color: theme.colors.textSecondary }]}>
                     Instructors
-                  </Text>
-                </View>
-                <View style={[styles.insightMetricDivider, { backgroundColor: theme.colors.border }]} />
-                <View style={styles.insightMetric}>
-                  <View style={[styles.insightMetricIcon, { backgroundColor: '#8B5CF618' }]}>
-                    <Icon name="shield-checkmark" size={14} color="#8B5CF6" />
-                  </View>
-                  <Text style={[styles.insightMetricValue, { color: theme.colors.textPrimary }]}>
-                    {stats.totalExperts}
-                  </Text>
-                  <Text style={[styles.insightMetricLabel, { color: theme.colors.textSecondary }]}>
-                    Experts
                   </Text>
                 </View>
                 <View style={[styles.insightMetricDivider, { backgroundColor: theme.colors.border }]} />
@@ -822,93 +839,6 @@ const AdminDashboard = () => {
               <View style={styles.emptyState}>
                 <Text style={[styles.emptyText, { color: theme.colors.textSecondary }]}>
                   No instructors found
-                </Text>
-              </View>
-            )}
-          </AppCard>
-        </View>
-
-        {/* Experts Table */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <View style={styles.sectionTitleRow}>
-              <View style={[styles.sectionIconBadge, { backgroundColor: '#8B5CF6' + '15' }]}>
-                <Icon name="shield-checkmark" size={16} color="#8B5CF6" />
-              </View>
-              <View>
-                <Text style={[styles.sectionTitle, { color: theme.colors.textPrimary }]}>
-                  Experts
-                </Text>
-                <Text style={[styles.sectionSubtitle, { color: theme.colors.textSecondary }]}>
-                  {experts?.length || 0} total experts
-                </Text>
-              </View>
-            </View>
-            <TouchableOpacity
-              style={[styles.manageButton, { borderColor: '#8B5CF6' }]}
-              onPress={() => navigation.navigate('ManageUsers', { userType: 'expert' })}
-            >
-              <Text style={[styles.manageButtonText, { color: '#8B5CF6' }]}>Manage</Text>
-              <Icon name="chevron-forward" size={14} color="#8B5CF6" />
-            </TouchableOpacity>
-          </View>
-
-          <AppCard style={styles.tableCard}>
-            {experts && experts.length > 0 ? (
-              experts.slice(0, 5).map((expert, index) => (
-                <View
-                  key={expert.id || index}
-                  style={[
-                    styles.tableRow,
-                    index % 2 === 1 && {
-                      backgroundColor: isDark
-                        ? 'rgba(255,255,255,0.02)'
-                        : 'rgba(139,92,246,0.03)',
-                    },
-                    index < Math.min(experts.length, 5) - 1 && {
-                      borderBottomColor: theme.colors.border,
-                      borderBottomWidth: 1,
-                    },
-                  ]}
-                >
-                  <View style={styles.userRowLeft}>
-                    <UserAvatar user={expert} size={38} />
-                    <View style={styles.userDetails}>
-                      <Text style={[styles.userName, { color: theme.colors.textPrimary }]} numberOfLines={1}>
-                        {expert.name || 'Unknown'}
-                      </Text>
-                      <Text style={[styles.userEmail, { color: theme.colors.textSecondary }]} numberOfLines={1}>
-                        {expert.email || '-'}
-                      </Text>
-                    </View>
-                  </View>
-                  <View
-                    style={[
-                      styles.statusPill,
-                      { backgroundColor: expert.isActive !== false ? '#10B98115' : '#EF444415' },
-                    ]}
-                  >
-                    <View
-                      style={[
-                        styles.statusDot,
-                        { backgroundColor: expert.isActive !== false ? '#10B981' : '#EF4444' },
-                      ]}
-                    />
-                    <Text
-                      style={[
-                        styles.statusPillText,
-                        { color: expert.isActive !== false ? '#10B981' : '#EF4444' },
-                      ]}
-                    >
-                      {expert.isActive !== false ? 'Active' : 'Inactive'}
-                    </Text>
-                  </View>
-                </View>
-              ))
-            ) : (
-              <View style={styles.emptyState}>
-                <Text style={[styles.emptyText, { color: theme.colors.textSecondary }]}>
-                  No experts found
                 </Text>
               </View>
             )}
@@ -1108,8 +1038,7 @@ const getStyles = (theme, isDark, isLargeScreen, isTablet, isMobile) =>
       justifyContent: 'center',
       alignItems: 'center',
     },
-    sectionTitle: {
-      fontSize: 16,
+    sectionTitle: {      fontSize: 16,
       fontWeight: '600',
       fontFamily: theme.typography?.fontFamily?.semiBold,
     },
@@ -1126,7 +1055,6 @@ const getStyles = (theme, isDark, isLargeScreen, isTablet, isMobile) =>
     statCard: {
       flex: 1,
       minWidth: isMobile ? '47%' : isLargeScreen ? 200 : isTablet ? 170 : 140,
-      maxWidth: isLargeScreen ? 280 : undefined,
     },
 
     // Charts Section

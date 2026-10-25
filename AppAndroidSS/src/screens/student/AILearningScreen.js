@@ -236,6 +236,63 @@ const ThinkingIndicator = ({ accent = '#f59e0b', label = 'Let me think about tha
   );
 };
 
+// ─── Skeleton loader shown while course/topic data is being fetched ──────────
+const LectureSkeleton = ({ isDark, theme }) => {
+  const shimmer = useRef(new RNAnimated.Value(0)).current;
+  useEffect(() => {
+    RNAnimated.loop(
+      RNAnimated.sequence([
+        RNAnimated.timing(shimmer, { toValue: 1, duration: 900, useNativeDriver: true }),
+        RNAnimated.timing(shimmer, { toValue: 0, duration: 900, useNativeDriver: true }),
+      ])
+    ).start();
+  }, []);
+  const opacity = shimmer.interpolate({ inputRange: [0, 1], outputRange: [0.35, 0.75] });
+  const skelBg = isDark ? '#1e2035' : '#dde3ef';
+  const panelBg = isDark ? '#0d0d1f' : '#1e293b';
+  const mainBg = isDark ? '#0f0f1a' : theme.colors.background;
+
+  const Bone = ({ style }) => (
+    <RNAnimated.View style={[{ backgroundColor: skelBg, borderRadius: 8, opacity }, style]} />
+  );
+
+  return (
+    <MainLayout showSidebar={false} showHeader={true} showBack={true}>
+      <View style={{ flex: 1, flexDirection: 'row', backgroundColor: mainBg }}>
+        {/* Icon rail */}
+        <View style={{ width: 78, backgroundColor: panelBg, alignItems: 'center', paddingTop: 20, gap: 18 }}>
+          {[0, 1, 2, 3, 4, 5].map(i => <Bone key={i} style={{ width: 46, height: 46, borderRadius: 12 }} />)}
+        </View>
+        {/* Main area */}
+        <View style={{ flex: 1, padding: 20, gap: 14 }}>
+          {/* Top bar: title + chunk progress */}
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Bone style={{ width: 220, height: 20 }} />
+            <Bone style={{ width: 70, height: 20 }} />
+          </View>
+          {/* Progress strip */}
+          <Bone style={{ width: '100%', height: 5, borderRadius: 3 }} />
+          {/* Whiteboard / visual area */}
+          <Bone style={{ width: '100%', height: 260, borderRadius: 16, marginTop: 4 }} />
+          {/* Subtitle bar */}
+          <Bone style={{ width: '100%', height: 48, borderRadius: 10 }} />
+          {/* Spoken text lines */}
+          <Bone style={{ width: '96%', height: 14 }} />
+          <Bone style={{ width: '88%', height: 14 }} />
+          <Bone style={{ width: '92%', height: 14 }} />
+          <Bone style={{ width: '72%', height: 14 }} />
+          {/* Bottom controls row */}
+          <View style={{ flexDirection: 'row', gap: 12, marginTop: 8 }}>
+            <Bone style={{ flex: 1, height: 44, borderRadius: 12 }} />
+            <Bone style={{ width: 44, height: 44, borderRadius: 12 }} />
+            <Bone style={{ flex: 1, height: 44, borderRadius: 12 }} />
+          </View>
+        </View>
+      </View>
+    </MainLayout>
+  );
+};
+
 const AILearningScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
@@ -252,8 +309,10 @@ const AILearningScreen = () => {
     }
   };
   const { courseId, topicId } = route.params || {};
-  const { courses, checkEnrollment, fetchCourses, isLoading: coursesLoading } = useData();
-  const course = courses.find((item) => String(item.id) === String(courseId));
+  const { courses, checkEnrollment, fetchCourses, isLoading: coursesLoading, getCourseById } = useData();
+  const [localCourse, setLocalCourse] = useState(null);
+  const [fetchingCourse, setFetchingCourse] = useState(true);
+  const course = courses.find((item) => String(item.id) === String(courseId)) || localCourse;
   const topic = course?.topics?.find((item) => String(item.id) === String(topicId));
 
   const [loading, setLoading] = useState(true);
@@ -529,8 +588,16 @@ const AILearningScreen = () => {
 
   // On a hard page refresh courses may not be loaded yet — fetch them so the
   // topic lookup succeeds before loadLecture() runs.
+  // Also handles courses beyond DataContext's page-1 limit by fetching individually.
   useEffect(() => {
-    if (courses.length === 0) fetchCourses();
+    const inContext = courses.find((item) => String(item.id) === String(courseId));
+    if (inContext || !courseId) {
+      setFetchingCourse(false);
+    } else {
+      getCourseById(courseId)
+        .then(res => { if (res.success && res.course) setLocalCourse(res.course); })
+        .finally(() => setFetchingCourse(false));
+    }
   }, []);
 
   useEffect(() => {
@@ -3104,17 +3171,9 @@ const AILearningScreen = () => {
     );
   };
 
-  if (!course || !topic) {
-    // Courses are still being fetched after a page refresh — show loading instead of error
-    if (coursesLoading || courses.length === 0) {
-      return (
-        <MainLayout showSidebar={false} showHeader={true} showBack={true}>
-          <View style={styles.centered}>
-            <ActivityIndicator size="large" color={theme.colors.primary} />
-            <Text style={[styles.loadingText, { color: theme.colors.textSecondary }]}>Loading lecture...</Text>
-          </View>
-        </MainLayout>
-      );
+  if (fetchingCourse || (!course || !topic)) {
+    if (fetchingCourse || coursesLoading || courses.length === 0) {
+      return <LectureSkeleton isDark={isDark} theme={theme} />;
     }
     return (
       <MainLayout showSidebar={false} showHeader={true} showBack={true}>
@@ -3126,14 +3185,7 @@ const AILearningScreen = () => {
   }
 
   if (loading) {
-    return (
-      <MainLayout showSidebar={false} showHeader={true} showBack={true}>
-        <View style={styles.centered}>
-          <ActivityIndicator size="large" color={theme.colors.primary} />
-          <Text style={[styles.loadingText, { color: theme.colors.textSecondary }]}>Loading AI lecture package...</Text>
-        </View>
-      </MainLayout>
-    );
+    return <LectureSkeleton isDark={isDark} theme={theme} />;
   }
 
   if (!isEnrolled) {

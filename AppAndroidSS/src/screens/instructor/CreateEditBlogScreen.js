@@ -116,8 +116,6 @@ const CreateEditBlogScreen = ({ route }) => {
   const handleNavigate = (route) => {
     if (route === 'ManageInstructors') {
       navigation.navigate('ManageUsers', { userType: 'instructor' });
-    } else if (route === 'ManageExperts') {
-      navigation.navigate('ManageUsers', { userType: 'expert' });
     } else if (route === 'Categories') {
       navigation.navigate('CategoryManagement');
     } else {
@@ -476,8 +474,7 @@ const getStyles = (theme, isDark, isTablet, isMobile) =>
       justifyContent: 'center', alignItems: 'center',
     },
     bannerTextGroup: { flex: 1 },
-    pageTitle: {
-      fontSize: isMobile ? 18 : 22, fontWeight: '700',
+    pageTitle: {      fontSize: isMobile ? 18 : 22, fontWeight: '700',
       fontFamily: theme.typography?.fontFamily?.bold, marginBottom: 2,
     },
     pageSubtitle: { fontSize: 13, fontFamily: theme.typography?.fontFamily?.regular },
@@ -504,8 +501,7 @@ const getStyles = (theme, isDark, isTablet, isMobile) =>
         boxShadow: isDark ? 'none' : '0 1px 8px rgba(26,26,46,0.06)',
       }),
     },
-    cardTitle: {
-      fontSize: 15, fontWeight: '700',
+    cardTitle: {      fontSize: 15, fontWeight: '700',
       fontFamily: theme.typography?.fontFamily?.bold,
       marginBottom: 16,
     },

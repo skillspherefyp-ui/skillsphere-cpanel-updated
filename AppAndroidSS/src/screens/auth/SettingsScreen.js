@@ -47,12 +47,11 @@ const SettingsScreen = () => {
 
 
   const sidebarItems = getSidebarItems(user?.role);
-  const isSuperInstructor = user?.role === 'admin';
+  const isAdmin = user?.role === 'admin';
 
   const handleNavigate = (route) => {
-    if (isSuperInstructor) {
+    if (isAdmin) {
       if (route === 'ManageInstructors') navigation.navigate('ManageUsers', { userType: 'instructor' });
-      else if (route === 'ManageExperts') navigation.navigate('ManageUsers', { userType: 'expert' });
       else if (route === 'Categories') navigation.navigate('CategoryManagement');
       else navigation.navigate(route);
     } else {

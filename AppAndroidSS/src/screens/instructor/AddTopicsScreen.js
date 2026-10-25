@@ -97,11 +97,12 @@ const AddTopicsScreen = () => {
   const route = useRoute();
   const { courseId: rawCourseId, creationMode: routeCreationMode } = route.params;
   const courseId = typeof rawCourseId === 'string' ? parseInt(rawCourseId, 10) : rawCourseId;
-  const { courses, addTopic, updateTopic, deleteTopic, fetchCourses } = useData();
+  const { courses, addTopic, updateTopic, deleteTopic, fetchCourses, getCourseById } = useData();
   const { user, logout } = useAuth();
   const { theme, isDark } = useTheme();
   const { width } = useWindowDimensions();
-  const course = courses.find(c => c.id === courseId || c.id === rawCourseId);
+  const [localCourse, setLocalCourse] = useState(null);
+  const course = localCourse || courses.find(c => c.id === courseId || c.id === rawCourseId);
   const creationMode = routeCreationMode || course?.creationMode || 'ai';
   const isManualMode = creationMode === 'manual';
 
@@ -112,9 +113,9 @@ const AddTopicsScreen = () => {
 
   // Check permissions
   const isOwner = course?.user?.id === user?.id;
-  const isSuperInstructor = user?.role === 'admin';
+  const isAdmin = user?.role === 'admin';
   const canManageAllCourses = user?.permissions?.canManageAllCourses === true;
-  const canAddTopics = isOwner || isSuperInstructor || canManageAllCourses;
+  const canAddTopics = isOwner || isAdmin || canManageAllCourses;
 
   // State
   const [topicTitle, setTopicTitle] = useState('');
@@ -143,10 +144,16 @@ const AddTopicsScreen = () => {
 
   const topics = course?.topics || [];
 
-  // Refresh course data on mount so extractedText (background PDF extraction) is up-to-date
+  // Fetch this specific course directly so topics are always up-to-date
+  // (DataContext courses array may not contain this course if pagination is active)
+  const refreshCourse = async () => {
+    const res = await getCourseById(courseId);
+    if (res.success && res.course) setLocalCourse(res.course);
+  };
+
   useEffect(() => {
-    fetchCourses();
-  }, []);
+    refreshCourse();
+  }, [courseId]);
 
   useEffect(() => {
     let active = true;
@@ -204,11 +211,9 @@ const AddTopicsScreen = () => {
   };
 
   const handleNavigate = (navRoute) => {
-    if (isSuperInstructor) {
+    if (isAdmin) {
       if (navRoute === 'ManageInstructors') {
         navigation.navigate('ManageUsers', { userType: 'instructor' });
-      } else if (navRoute === 'ManageExperts') {
-        navigation.navigate('ManageUsers', { userType: 'expert' });
       } else if (navRoute === 'Categories') {
         navigation.navigate('CategoryManagement');
       } else {
@@ -372,7 +377,7 @@ const AddTopicsScreen = () => {
         await syncOutline(editingTopic.id, topicTitle);
         handleCloseModal();
         Toast.show({ type: 'success', text1: 'Success', text2: 'Topic updated successfully!' });
-        await fetchCourses();
+        await refreshCourse();
       } else {
         Toast.show({ type: 'error', text1: 'Error', text2: result.error || 'Failed to update topic' });
       }
@@ -388,7 +393,7 @@ const AddTopicsScreen = () => {
         await syncOutline(result.topic?.id, topicTitle);
         handleCloseModal();
         Toast.show({ type: 'success', text1: 'Success', text2: 'Topic added successfully!' });
-        await fetchCourses();
+        await refreshCourse();
       } else {
         Toast.show({ type: 'error', text1: 'Error', text2: result.error || 'Failed to add topic' });
       }
@@ -410,7 +415,7 @@ const AddTopicsScreen = () => {
           text1: 'Success',
           text2: 'Topic deleted successfully!',
         });
-        await fetchCourses();
+        await refreshCourse();
       } else {
         Toast.show({
           type: 'error',
@@ -636,7 +641,7 @@ const AddTopicsScreen = () => {
       sidebarItems={sidebarItems}
       activeRoute="Courses"
       onNavigate={handleNavigate}
-      userInfo={{ name: user?.name, role: isSuperInstructor ? 'Admin' : 'Instructor', avatar: user?.avatar }}
+      userInfo={{ name: user?.name, role: isAdmin ? 'Admin' : 'Instructor', avatar: user?.avatar }}
       onLogout={logout}
       onSettings={() => navigation.navigate('Settings')}
     >
@@ -2112,8 +2117,7 @@ const getStyles = (theme, isDark, isLargeScreen, isTablet, isMobile, isManualMod
       alignItems: 'flex-start',
       marginBottom: 20,
     },
-    modalTitle: {
-      fontSize: 18,
+    modalTitle: {      fontSize: 18,
       fontWeight: '700',
       marginBottom: 2,
       fontFamily: theme.typography?.fontFamily?.bold,

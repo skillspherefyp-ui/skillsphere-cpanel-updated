@@ -695,8 +695,7 @@ const getStyles = (theme, isDark, isLargeScreen, isTablet, isMobile) =>
       justifyContent: 'center',
       alignItems: 'center',
     },
-    sectionTitle: {
-      fontSize: 15,
+    sectionTitle: {      fontSize: 15,
       fontWeight: '600',
       fontFamily: theme.typography.fontFamily.semiBold,
     },

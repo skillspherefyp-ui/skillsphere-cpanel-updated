@@ -18,6 +18,9 @@ export const useTheme = () => {
 // Based on Comprehensive UI Design Guide
 // Clean, Modern, Accessible, Professional
 
+// Heading font — Fredoka (rounded display) used for all h1/h2/title-level text
+export const HEADING_FONT = Platform.OS === 'web' ? 'Fredoka' : 'Fredoka-Bold';
+
 // Typography configuration - System fonts for best readability
 // iOS: San Francisco, Android: Roboto, Web: system-ui
 const typography = {
@@ -26,6 +29,7 @@ const typography = {
     medium: 'System',
     semiBold: 'System',
     bold: 'System',
+    heading: HEADING_FONT,
   },
   weights: {
     regular: '400',
@@ -74,6 +78,18 @@ const borderRadius = {
   '2xl': 16,   // Cards: 16px as per guide
   '3xl': 20,
   full: 9999,
+};
+
+// Button config — single source of truth for all button styling
+const buttonConfig = {
+  borderRadius: 9999,   // pill shape
+  letterSpacing: 0.5,
+  fontWeight: '700',
+  sizes: {
+    sm: { height: 34, paddingHorizontal: 16, fontSize: 12 },
+    md: { height: 44, paddingHorizontal: 22, fontSize: 14 },
+    lg: { height: 52, paddingHorizontal: 28, fontSize: 16 },
+  },
 };
 
 // Light Theme - EduView Orange / Navy palette
@@ -249,6 +265,7 @@ const lightTheme = {
   borderRadius,
   spacing,
   typography,
+  button: buttonConfig,
 
   // Animation durations (Section 11)
   animation: {
@@ -449,6 +466,7 @@ const darkTheme = {
   borderRadius,
   spacing,
   typography,
+  button: buttonConfig,
 
   // Animation durations
   animation: {

@@ -7,8 +7,7 @@ import {
   TouchableOpacity,
   Modal,
   ActivityIndicator,
-  useWindowDimensions,
-} from 'react-native';
+  useWindowDimensions, Platform} from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTheme } from '../../context/ThemeContext';
@@ -31,7 +30,7 @@ const GenerationLogsScreen = () => {
   const { courses, fetchCourses } = useData();
   const { width } = useWindowDimensions();
 
-  const isSuperInstructor = user?.role === 'admin';
+  const isAdmin = user?.role === 'admin';
   const course = courses.find(c => c.id === courseId);
   const courseTitle = paramTitle || course?.name || 'Course';
   const singleTopicTitle = paramTopicTitle || 'Topic';
@@ -51,9 +50,8 @@ const GenerationLogsScreen = () => {
   const sidebarItems = getSidebarItems(user?.role);
 
   const handleNavigate = (navRoute) => {
-    if (isSuperInstructor) {
+    if (isAdmin) {
       if (navRoute === 'ManageInstructors') navigation.navigate('ManageUsers', { userType: 'instructor' });
-      else if (navRoute === 'ManageExperts') navigation.navigate('ManageUsers', { userType: 'expert' });
       else if (navRoute === 'Categories') navigation.navigate('CategoryManagement');
       else navigation.navigate(navRoute);
     } else {
@@ -412,7 +410,7 @@ const GenerationLogsScreen = () => {
       sidebarItems={sidebarItems}
       activeRoute="Courses"
       onNavigate={handleNavigate}
-      userInfo={{ name: user?.name, role: isSuperInstructor ? 'Admin' : 'Instructor', avatar: user?.avatar }}
+      userInfo={{ name: user?.name, role: isAdmin ? 'Admin' : 'Instructor', avatar: user?.avatar }}
       onLogout={logout}
       onSettings={() => navigation.navigate('Settings')}
     >
@@ -712,8 +710,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 16,
   },
-  modalTitle: {
-    fontSize: 18,
+  modalTitle: {    fontSize: 18,
     fontWeight: '700',
     marginLeft: 10,
   },
@@ -729,8 +726,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 10,
   },
-  summaryCount: {
-    fontSize: 22,
+  summaryCount: {    fontSize: 22,
     fontWeight: '800',
   },
   summaryLabel: {

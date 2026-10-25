@@ -358,8 +358,7 @@ const getStyles = (theme, isDark) =>
       alignItems: 'center',
       marginBottom: 14,
     },
-    modalTitle: {
-      fontSize: 20,
+    modalTitle: {      fontSize: 20,
       fontWeight: '700',
     },
     closeBtn: {

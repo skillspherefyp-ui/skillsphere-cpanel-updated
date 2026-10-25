@@ -793,8 +793,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  loaderTitle: {
-    color: '#f1f5f9',
+  loaderTitle: {    color: '#f1f5f9',
     fontSize: 20,
     fontWeight: '800',
     textAlign: 'center',
@@ -1058,8 +1057,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     letterSpacing: 0.5,
   },
-  chunkTitle: {
-    color: '#f1f5f9',
+  chunkTitle: {    color: '#f1f5f9',
     fontSize: 24,
     fontWeight: '800',
     marginBottom: 14,

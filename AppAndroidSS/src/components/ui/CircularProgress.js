@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Platform} from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 import { useTheme } from '../../context/ThemeContext';
 
@@ -72,8 +72,7 @@ const styles = StyleSheet.create({
     alignItems: 'baseline',
     justifyContent: 'center',
   },
-  percentageText: {
-    fontSize: 24,
+  percentageText: {    fontSize: 24,
     fontWeight: '700',
   },
   percentSign: {

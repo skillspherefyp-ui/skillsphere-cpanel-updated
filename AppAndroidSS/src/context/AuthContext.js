@@ -3,28 +3,17 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { authAPI, setUnauthorizedHandler } from '../services/apiClient';
 
 const normalizeUser = (payload, fallbackRole) => {
-  console.log('🔧 normalizeUser called with payload:', JSON.stringify(payload, null, 2));
-  console.log('🔧 fallbackRole:', fallbackRole);
-
-  if (!payload) {
-    console.log('⚠️ normalizeUser: payload is null/undefined, returning null');
-    return null;
-  }
+  if (!payload) return null;
 
   // Map legacy role names to current role names
   const roleMap = { superadmin: 'admin', superinstructor: 'admin' };
   const rawRole =
     payload.role ||
     fallbackRole ||
-    'instructor';
+    'student';
   const inferredRole = roleMap[rawRole] || rawRole;
 
-  console.log('🔧 normalizeUser: payload.role=', payload.role, '→ mapped to:', inferredRole);
-
-  const result = { ...payload, role: inferredRole };
-  console.log('🔧 normalizeUser returning:', JSON.stringify(result, null, 2));
-
-  return result;
+  return { ...payload, role: inferredRole };
 };
 
 const AuthContext = createContext();

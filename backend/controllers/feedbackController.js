@@ -1,15 +1,16 @@
-const { Feedback, Course } = require('../models');
+const { Feedback, Course, User } = require('../models');
+const { Op } = require('sequelize');
 
 exports.createFeedback = async (req, res) => {
   try {
-    if (req.user.role !== 'expert') {
-      return res.status(403).json({ error: 'Only experts can submit feedback' });
+    if (!['student', 'instructor', 'admin'].includes(req.user.role)) {
+      return res.status(403).json({ error: 'Only students can submit feedback' });
     }
 
-    const { courseName, expertName, feedback, rating, courseId } = req.body;
+    const { courseName, feedback, rating, courseId } = req.body;
 
-    if (!courseName || !expertName || !feedback || !rating) {
-      return res.status(400).json({ error: 'All required fields must be provided' });
+    if (!feedback || !rating) {
+      return res.status(400).json({ error: 'Feedback and rating are required' });
     }
 
     if (rating < 1 || rating > 5) {
@@ -25,11 +26,12 @@ exports.createFeedback = async (req, res) => {
     }
 
     const feedbackRecord = await Feedback.create({
-      courseName,
-      expertName,
+      courseName: courseName || '',
+      studentName: req.user.name,
+      userId: req.user.id,
       feedback,
       rating,
-      courseId
+      courseId: courseId || null
     });
 
     res.status(201).json({ success: true, feedback: feedbackRecord });
@@ -87,7 +89,7 @@ exports.updateFeedback = async (req, res) => {
     }
 
     const { id } = req.params;
-    const { courseName, expertName, feedback, rating } = req.body;
+    const { courseName, feedback, rating } = req.body;
 
     const feedbackRecord = await Feedback.findByPk(id);
 
@@ -96,7 +98,6 @@ exports.updateFeedback = async (req, res) => {
     }
 
     if (courseName) feedbackRecord.courseName = courseName;
-    if (expertName) feedbackRecord.expertName = expertName;
     if (feedback) feedbackRecord.feedback = feedback;
     if (rating && rating >= 1 && rating <= 5) feedbackRecord.rating = rating;
 
@@ -105,6 +106,74 @@ exports.updateFeedback = async (req, res) => {
     res.json({ success: true, feedback: feedbackRecord });
   } catch (error) {
     console.error('Update feedback error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+exports.getFeedbackByCourse = async (req, res) => {
+  try {
+    if (!['instructor', 'admin'].includes(req.user.role)) {
+      return res.status(403).json({ error: 'Only instructors can view feedback' });
+    }
+
+    const page  = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(50, parseInt(req.query.limit) || 10);
+    const offset = (page - 1) * limit;
+    const search = req.query.search || '';
+
+    const courseWhere = {};
+    if (search) courseWhere.name = { [Op.like]: `%${search}%` };
+    // Non-admin instructors only see their own courses
+    if (req.user.role === 'instructor') courseWhere.userId = req.user.id;
+
+    // Get courses that have at least one feedback
+    const { count, rows: courses } = await Course.findAndCountAll({
+      where: courseWhere,
+      include: [
+        {
+          model: Feedback,
+          as: 'feedbacks',
+          required: true,
+          attributes: ['id', 'studentName', 'userId', 'rating', 'feedback', 'createdAt'],
+        },
+      ],
+      order: [['updatedAt', 'DESC']],
+      limit,
+      offset,
+      distinct: true,
+    });
+
+    const result = courses.map(c => {
+      const fbs = c.feedbacks || [];
+      const avgRating = fbs.length > 0
+        ? (fbs.reduce((s, f) => s + f.rating, 0) / fbs.length).toFixed(1)
+        : 0;
+      return {
+        id: c.id,
+        name: c.name,
+        thumbnailImage: c.thumbnailImage,
+        status: c.status,
+        feedbackCount: fbs.length,
+        avgRating: parseFloat(avgRating),
+        feedbacks: fbs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)),
+      };
+    });
+
+    res.json({ success: true, courses: result, total: count, page, totalPages: Math.ceil(count / limit) });
+  } catch (error) {
+    console.error('Get feedback by course error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+exports.checkMyFeedback = async (req, res) => {
+  try {
+    const { courseId } = req.params;
+    const existing = await Feedback.findOne({
+      where: { userId: req.user.id, courseId }
+    });
+    res.json({ submitted: !!existing });
+  } catch (error) {
     res.status(500).json({ error: 'Internal server error' });
   }
 };

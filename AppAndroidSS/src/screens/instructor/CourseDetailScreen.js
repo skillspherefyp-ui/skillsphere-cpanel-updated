@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -139,11 +139,13 @@ const CourseDetailScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const { courseId } = route.params;
-  const { courses, updateCourse, deleteCourse, isLoading } = useData();
+  const { courses, updateCourse, deleteCourse, isLoading, getCourseById } = useData();
   const { theme, isDark } = useTheme();
   const { user, logout } = useAuth();
   const { width } = useWindowDimensions();
-  const course = courses.find(c => String(c.id) === String(courseId));
+  const [localCourse, setLocalCourse] = useState(null);
+  const [fetchingCourse, setFetchingCourse] = useState(false);
+  const course = courses.find(c => String(c.id) === String(courseId)) || localCourse;
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [expandedTopicId, setExpandedTopicId] = useState(null);
   const [topicPackages, setTopicPackages] = useState({});
@@ -156,19 +158,27 @@ const CourseDetailScreen = () => {
 
   // Permission checks
   const isOwner = course?.user?.id === user?.id;
-  const isSuperInstructor = user?.role === 'admin';
+  const isAdmin = user?.role === 'admin';
   const canManageAllCourses = user?.permissions?.canManageAllCourses === true;
-  const canEdit = isOwner || isSuperInstructor || canManageAllCourses;
+  const canEdit = isOwner || isAdmin || canManageAllCourses;
 
   // Sidebar navigation items based on user role
   const sidebarItems = getSidebarItems(user?.role);
 
+  // If course is not in DataContext (pagination), fetch it individually.
+  useEffect(() => {
+    if (!courses.find(c => String(c.id) === String(courseId)) && courseId) {
+      setFetchingCourse(true);
+      getCourseById(courseId)
+        .then(res => { if (res.success && res.course) setLocalCourse(res.course); })
+        .finally(() => setFetchingCourse(false));
+    }
+  }, [courseId]);
+
   const handleNavigate = (navRoute) => {
-    if (isSuperInstructor) {
+    if (isAdmin) {
       if (navRoute === 'ManageInstructors') {
         navigation.navigate('ManageUsers', { userType: 'instructor' });
-      } else if (navRoute === 'ManageExperts') {
-        navigation.navigate('ManageUsers', { userType: 'expert' });
       } else if (navRoute === 'Categories') {
         navigation.navigate('CategoryManagement');
       } else {
@@ -230,14 +240,14 @@ const CourseDetailScreen = () => {
 
   const styles = getStyles(theme, isDark, isLargeScreen, isTablet, isMobile);
 
-  if (isLoading && !course) {
+  if ((isLoading || fetchingCourse) && !course) {
     return (
       <MainLayout
         showSidebar={true}
         sidebarItems={sidebarItems}
         activeRoute="Courses"
         onNavigate={handleNavigate}
-        userInfo={{ name: user?.name, role: isSuperInstructor ? 'Admin' : 'Instructor', avatar: user?.avatar }}
+        userInfo={{ name: user?.name, role: isAdmin ? 'Admin' : 'Instructor', avatar: user?.avatar }}
         onLogout={logout}
         onSettings={() => navigation.navigate('Settings')}
       >
@@ -255,7 +265,7 @@ const CourseDetailScreen = () => {
         sidebarItems={sidebarItems}
         activeRoute="Courses"
         onNavigate={handleNavigate}
-        userInfo={{ name: user?.name, role: isSuperInstructor ? 'Admin' : 'Instructor', avatar: user?.avatar }}
+        userInfo={{ name: user?.name, role: isAdmin ? 'Admin' : 'Instructor', avatar: user?.avatar }}
         onLogout={logout}
         onSettings={() => navigation.navigate('Settings')}
       >
@@ -278,7 +288,7 @@ const CourseDetailScreen = () => {
       sidebarItems={sidebarItems}
       activeRoute="Courses"
       onNavigate={handleNavigate}
-      userInfo={{ name: user?.name, role: isSuperInstructor ? 'Admin' : 'Instructor', avatar: user?.avatar }}
+      userInfo={{ name: user?.name, role: isAdmin ? 'Admin' : 'Instructor', avatar: user?.avatar }}
       onLogout={logout}
       onSettings={() => navigation.navigate('Settings')}
     >
@@ -976,8 +986,7 @@ const getStyles = (theme, isDark, isLargeScreen, isTablet, isMobile) =>
       justifyContent: 'center',
       alignItems: 'center',
     },
-    sectionTitle: {
-      fontSize: 15,
+    sectionTitle: {      fontSize: 15,
       fontWeight: '600',
       fontFamily: theme.typography.fontFamily.semiBold,
     },

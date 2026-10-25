@@ -20,12 +20,11 @@ const AppButton = ({
   const { theme, isDark } = useTheme();
   const isWeb = Platform.OS === 'web';
 
-  // Size configurations (Section 8.1)
-  // Small: Height 32px, Medium: Height 40px, Large: Height 48px
+  // Size configurations — driven by theme.button.sizes
   const sizeConfig = {
-    sm: { height: 32, paddingHorizontal: 12, fontSize: 12, iconSize: 16 },
-    md: { height: 40, paddingHorizontal: 16, fontSize: 14, iconSize: 18 },
-    lg: { height: 48, paddingHorizontal: 24, fontSize: 16, iconSize: 20 },
+    sm: { height: theme.button.sizes.sm.height, paddingHorizontal: theme.button.sizes.sm.paddingHorizontal, fontSize: theme.button.sizes.sm.fontSize, iconSize: 16 },
+    md: { height: theme.button.sizes.md.height, paddingHorizontal: theme.button.sizes.md.paddingHorizontal, fontSize: theme.button.sizes.md.fontSize, iconSize: 18 },
+    lg: { height: theme.button.sizes.lg.height, paddingHorizontal: theme.button.sizes.lg.paddingHorizontal, fontSize: theme.button.sizes.lg.fontSize, iconSize: 20 },
   };
 
   const currentSize = sizeConfig[size] || sizeConfig.md;
@@ -36,7 +35,7 @@ const AppButton = ({
       {
         height: currentSize.height,
         paddingHorizontal: currentSize.paddingHorizontal,
-        borderRadius: theme.borderRadius.lg, // 12px for buttons
+        borderRadius: theme.button.borderRadius, // pill shape from theme
       },
       fullWidth && styles.fullWidth,
       disabled && styles.disabled,
@@ -192,7 +191,7 @@ const AppButton = ({
     const webGradientStyle = {
       background: `linear-gradient(135deg, ${gradientColors[0]} 0%, ${gradientColors[1]} 100%)`,
       backgroundColor: gradientColors[0],
-      ...(isWeb && glow && !disabled ? { boxShadow: `0 4px 16px ${gradientColors[0]}40` } : {}),
+      ...(isWeb && !disabled ? { boxShadow: `0 4px 18px ${gradientColors[0]}50` } : {}),
     };
 
     return (
@@ -203,7 +202,7 @@ const AppButton = ({
         style={[getButtonStyles(), !isWeb ? getGlowStyle() : {}, getWebHoverStyles(), style]}
       >
         {isWeb ? (
-          <View style={[styles.gradient, webGradientStyle, { borderRadius: theme.borderRadius.lg }]}>
+          <View style={[styles.gradient, webGradientStyle, { borderRadius: theme.button.borderRadius }]}>
             {renderContent()}
           </View>
         ) : (
@@ -211,7 +210,7 @@ const AppButton = ({
             colors={gradientColors}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            style={[styles.gradient, { borderRadius: theme.borderRadius.lg }]}
+            style={[styles.gradient, { borderRadius: theme.button.borderRadius }]}
           >
             {renderContent()}
           </LinearGradient>
@@ -260,8 +259,8 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   text: {
-    fontWeight: '600',
-    letterSpacing: 0.3,
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
   iconLeft: {
     marginRight: 4,

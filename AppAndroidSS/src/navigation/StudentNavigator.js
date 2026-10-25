@@ -29,6 +29,7 @@ import RefundPolicyScreen from '../screens/static/RefundPolicyScreen';
 import AILearningProfileScreen from '../screens/student/AILearningProfileScreen';
 import ForgotPasswordScreen from '../screens/auth/ForgotPasswordScreen';
 import OTPVerificationScreen from '../screens/auth/OTPVerificationScreen';
+import CourseFeedbackScreen from '../screens/student/CourseFeedbackScreen';
 
 const Stack = createStackNavigator();
 
@@ -58,6 +59,7 @@ const StudentNavigator = () => {
       <Stack.Screen name="AITutor" component={AIChatScreen} />
       <Stack.Screen name="Certificates" component={CertificatesScreen} />
       <Stack.Screen name="CertificatePreview" component={CertificatePreviewScreen} />
+      <Stack.Screen name="CourseFeedback" component={CourseFeedbackScreen} />
       <Stack.Screen name="Settings" component={SettingsScreen} />
       <Stack.Screen name="Discussion" component={DiscussionScreen} />
       <Stack.Screen name="DiscussionThread" component={DiscussionThreadScreen} />

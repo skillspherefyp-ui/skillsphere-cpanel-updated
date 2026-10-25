@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Button } from 'react-native';
+import { View, Text, StyleSheet, Button, Platform} from 'react-native';
 import apiClient from '../../services/apiClient';
 
 const BackendStatus = ({ navigation }) => {

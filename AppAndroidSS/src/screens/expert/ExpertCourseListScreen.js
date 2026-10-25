@@ -408,8 +408,7 @@ const getStyles = (theme, isDark, isLargeScreen, isTablet, isMobile) =>
     bannerTextGroup: {
       flex: 1,
     },
-    pageTitle: {
-      fontSize: isMobile ? 18 : 22,
+    pageTitle: {      fontSize: isMobile ? 18 : 22,
       fontWeight: '700',
       fontFamily: theme.typography.fontFamily.bold,
       marginBottom: 2,

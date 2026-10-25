@@ -133,8 +133,8 @@ const QuizResultScreen = () => {
             />
           ) : passed && isCourseComplete ? (
             <AppButton
-              title="Preview Certificate"
-              onPress={() => navigation.navigate('CertificatePreview', { courseId })}
+              title="Rate & Get Certificate"
+              onPress={() => navigation.navigate('CourseFeedback', { courseId })}
               variant="primary"
               fullWidth
               icon={<Icon name="ribbon" size={16} color="#ffffff" />}
@@ -250,8 +250,7 @@ const styles = StyleSheet.create({
   bannerTextGroup: {
     flex: 1,
   },
-  bannerTitle: {
-    fontSize: 20,
+  bannerTitle: {    fontSize: 20,
     fontWeight: '700',
     marginBottom: 2,
   },

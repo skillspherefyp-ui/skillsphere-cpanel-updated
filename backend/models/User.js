@@ -28,7 +28,7 @@ const User = sequelize.define('User', {
     allowNull: true
   },
   role: {
-    type: DataTypes.ENUM('student', 'expert', 'instructor', 'admin'),
+    type: DataTypes.ENUM('student', 'instructor', 'admin'),
     allowNull: false,
     defaultValue: 'student'
   },
@@ -43,7 +43,7 @@ const User = sequelize.define('User', {
     get() {
       const rawValue = this.getDataValue('permissions');
       if (!rawValue) {
-        return ['instructor', 'expert'].includes(this.role) ? {} : null;
+        return this.role === 'instructor' ? {} : null;
       }
       // MariaDB returns JSON columns as LONGTEXT strings — parse if needed
       if (typeof rawValue === 'string') {
@@ -58,7 +58,7 @@ const User = sequelize.define('User', {
   },
   // OTP Fields
   otpCode: {
-    type: DataTypes.STRING(6),
+    type: DataTypes.STRING(64),
     allowNull: true
   },
   otpExpiry: {
@@ -100,6 +100,20 @@ const User = sequelize.define('User', {
     defaultValue: false
   },
   privacyPolicyAcceptedAt: {
+    type: DataTypes.DATE,
+    allowNull: true
+  },
+  tokenVersion: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
+    allowNull: false
+  },
+  failedLoginAttempts: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
+    allowNull: false
+  },
+  lockedUntil: {
     type: DataTypes.DATE,
     allowNull: true
   },

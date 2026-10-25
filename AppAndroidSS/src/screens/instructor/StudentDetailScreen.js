@@ -49,16 +49,14 @@ const StudentDetailScreen = () => {
   const isTablet = width > 768;
   const isMobile = width <= 480;
 
-  const isSuperInstructor = user?.role === 'admin';
+  const isAdmin = user?.role === 'admin';
 
   const sidebarItems = getSidebarItems(user?.role);
 
   const handleNavigate = (navRoute) => {
-    if (isSuperInstructor) {
+    if (isAdmin) {
       if (navRoute === 'ManageInstructors') {
         navigation.navigate('ManageUsers', { userType: 'instructor' });
-      } else if (navRoute === 'ManageExperts') {
-        navigation.navigate('ManageUsers', { userType: 'expert' });
       } else if (navRoute === 'Categories') {
         navigation.navigate('CategoryManagement');
       } else {
@@ -82,7 +80,7 @@ const StudentDetailScreen = () => {
         sidebarItems={sidebarItems}
         activeRoute="Students"
         onNavigate={handleNavigate}
-        userInfo={{ name: user?.name, role: isSuperInstructor ? 'Admin' : 'Instructor', avatar: user?.avatar }}
+        userInfo={{ name: user?.name, role: isAdmin ? 'Admin' : 'Instructor', avatar: user?.avatar }}
         onLogout={logout}
         onSettings={() => navigation.navigate('Settings')}
       >
@@ -109,7 +107,7 @@ const StudentDetailScreen = () => {
       sidebarItems={sidebarItems}
       activeRoute="Students"
       onNavigate={handleNavigate}
-      userInfo={{ name: user?.name, role: isSuperInstructor ? 'Admin' : 'Instructor', avatar: user?.avatar }}
+      userInfo={{ name: user?.name, role: isAdmin ? 'Admin' : 'Instructor', avatar: user?.avatar }}
       onLogout={logout}
       onSettings={() => navigation.navigate('Settings')}
     >
@@ -558,8 +556,7 @@ const getStyles = (theme, isDark, isLargeScreen, isTablet, isMobile) =>
     bannerTextGroup: {
       flex: 1,
     },
-    pageTitle: {
-      fontSize: isMobile ? 18 : 22,
+    pageTitle: {      fontSize: isMobile ? 18 : 22,
       fontWeight: '700',
       fontFamily: theme.typography.fontFamily.bold,
       marginBottom: 2,
@@ -667,8 +664,7 @@ const getStyles = (theme, isDark, isLargeScreen, isTablet, isMobile) =>
       justifyContent: 'center',
       alignItems: 'center',
     },
-    cardTitle: {
-      fontSize: 16,
+    cardTitle: {      fontSize: 16,
       fontWeight: '600',
       fontFamily: theme.typography.fontFamily.semiBold,
     },

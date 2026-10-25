@@ -172,6 +172,7 @@ exports.getAllCourses = async (req, res) => {
       ];
     }
     if (level && level !== 'All') where.level = level;
+    if (req.query.status) where.status = req.query.status;
 
     // Server-side enforcement: if an authenticated non-admin provides instructorId,
     // ignore it and force filter to their own courses to prevent seeing others' courses.
@@ -462,6 +463,33 @@ exports.setPrerequisites = async (req, res) => {
     res.json({ success: true, course });
   } catch (error) {
     console.error('Set prerequisites error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+exports.getPublicStats = async (req, res) => {
+  try {
+    const { User } = require('../models');
+    const { Op } = require('sequelize');
+
+    const [totalStudents, totalCourses, totalInstructors, totalEnrollments, completedEnrollments] = await Promise.all([
+      User.count({ where: { role: 'student', isActive: true } }),
+      Course.count({ where: { status: 'published' } }),
+      User.count({ where: { role: { [Op.in]: ['instructor', 'expert'] }, isActive: true } }),
+      Enrollment.count(),
+      Enrollment.count({ where: { status: 'completed' } }),
+    ]);
+
+    const completionRate = totalEnrollments > 0
+      ? Math.round((completedEnrollments / totalEnrollments) * 100)
+      : 0;
+
+    res.json({
+      success: true,
+      stats: { totalStudents, totalCourses, totalInstructors, completionRate },
+    });
+  } catch (error) {
+    console.error('Get public stats error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };

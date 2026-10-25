@@ -27,7 +27,7 @@ router.post('/reset-password', authLimiter, authController.resetPassword);
 router.post('/verify-signup-otp', authLimiter, authController.verifySignupOTP);
 
 // Google OAuth route
-router.post('/google-auth', authController.googleAuth);
+router.post('/google-auth', authLimiter, authController.googleAuth);
 
 // Privacy Policy routes (requires authentication)
 router.post('/accept-privacy-policy', authenticateToken, authController.acceptPrivacyPolicy);

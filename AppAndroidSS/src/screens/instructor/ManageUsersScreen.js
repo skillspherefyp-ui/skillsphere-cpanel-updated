@@ -13,6 +13,7 @@ import {
 import Toast from 'react-native-toast-message';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
+import StatsCard from '../../components/ui/StatsCard';
 import MainLayout from '../../components/ui/MainLayout';
 import UserAvatar from '../../components/ui/UserAvatar';
 import AppInput from '../../components/ui/AppInput';
@@ -59,7 +60,7 @@ const ManageUsersScreen = () => {
   const isTablet = width > 768;
   const isMobile = width <= 480;
 
-  const isSuperInstructor = user?.role === 'admin';
+  const isAdmin = user?.role === 'admin';
   const userTypeLabel = userType === 'instructor' ? 'Instructor' : 'Expert';
   const userTypeLabelPlural = userType === 'instructor' ? 'Instructors' : 'Experts';
 
@@ -69,8 +70,6 @@ const ManageUsersScreen = () => {
   const handleNavigate = (route) => {
     if (route === 'ManageInstructors') {
       navigation.navigate('ManageUsers', { userType: 'instructor' });
-    } else if (route === 'ManageExperts') {
-      navigation.navigate('ManageUsers', { userType: 'expert' });
     } else if (route === 'Categories') {
       navigation.navigate('CategoryManagement');
     } else {
@@ -78,7 +77,7 @@ const ManageUsersScreen = () => {
     }
   };
 
-  const activeRoute = userType === 'instructor' ? 'ManageInstructors' : 'ManageExperts';
+  const activeRoute = 'ManageInstructors';
 
   // Fetch users
   useEffect(() => {
@@ -502,58 +501,32 @@ const ManageUsersScreen = () => {
 
         {/* Stats Section */}
         <View style={styles.statsSection}>
-          {/* Total */}
-          <View
-            style={[
-              styles.statCard,
-              {
-                backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#FFFFFF',
-                borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(26,26,46,0.07)',
-              },
-            ]}
-          >
-            <View style={[styles.statIconCircle, { backgroundColor: 'rgba(255,140,66,0.12)' }]}>
-              <Icon name="people" size={20} color={ORANGE} />
-            </View>
-            <Text style={[styles.statValue, { color: ORANGE }]}>{stats.total}</Text>
-            <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>
-              Total {userTypeLabelPlural}
-            </Text>
-          </View>
-
-          {/* Active */}
-          <View
-            style={[
-              styles.statCard,
-              {
-                backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#FFFFFF',
-                borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(26,26,46,0.07)',
-              },
-            ]}
-          >
-            <View style={[styles.statIconCircle, { backgroundColor: 'rgba(16,185,129,0.12)' }]}>
-              <Icon name="checkmark-circle" size={20} color="#10B981" />
-            </View>
-            <Text style={[styles.statValue, { color: '#10B981' }]}>{stats.active}</Text>
-            <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>Active</Text>
-          </View>
-
-          {/* Inactive */}
-          <View
-            style={[
-              styles.statCard,
-              {
-                backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#FFFFFF',
-                borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(26,26,46,0.07)',
-              },
-            ]}
-          >
-            <View style={[styles.statIconCircle, { backgroundColor: 'rgba(239,68,68,0.12)' }]}>
-              <Icon name="close-circle" size={20} color="#EF4444" />
-            </View>
-            <Text style={[styles.statValue, { color: '#EF4444' }]}>{stats.inactive}</Text>
-            <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>Inactive</Text>
-          </View>
+          <StatsCard
+            icon="people"
+            color={ORANGE}
+            value={stats.total}
+            label={`Total ${userTypeLabelPlural}`}
+            onPress={() => setStatusFilter(null)}
+            isActive={statusFilter === null}
+          />
+          <StatsCard
+            icon="checkmark-circle"
+            color="#10B981"
+            value={stats.active}
+            label="Active"
+            ratio={stats.total > 0 ? stats.active / stats.total : 0}
+            onPress={() => setStatusFilter(statusFilter === true ? null : true)}
+            isActive={statusFilter === true}
+          />
+          <StatsCard
+            icon="close-circle"
+            color="#EF4444"
+            value={stats.inactive}
+            label="Inactive"
+            ratio={stats.total > 0 ? stats.inactive / stats.total : 0}
+            onPress={() => setStatusFilter(statusFilter === false ? null : false)}
+            isActive={statusFilter === false}
+          />
         </View>
 
         {/* Search & Filter Section */}
@@ -1093,8 +1066,7 @@ const getStyles = (theme, isDark, isLargeScreen, isTablet, isMobile) =>
     bannerTextGroup: {
       flex: 1,
     },
-    pageTitle: {
-      fontSize: isMobile ? 18 : 22,
+    pageTitle: {      fontSize: isMobile ? 18 : 22,
       fontWeight: '700',
       fontFamily: theme.typography?.fontFamily?.bold,
       marginBottom: 2,

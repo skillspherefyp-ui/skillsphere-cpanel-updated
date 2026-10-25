@@ -276,10 +276,12 @@ export const courseAPI = {
     if (params.level) qs.set('level', params.level);
     if (params.sort) qs.set('sort', params.sort);
     if (params.instructorId) qs.set('instructorId', params.instructorId);
+    if (params.status) qs.set('status', params.status);
     const query = qs.toString();
     return get(`/courses${query ? `?${query}` : ''}`);
   },
   getTopCourses: (limit = 3) => get(`/courses/top?limit=${limit}`, false),
+  getPublicStats: () => get('/courses/stats', false),
   getById: (id) => get(`/courses/${id}`, false),
   create: (data) => post('/courses', data),
   update: (id, data) => put(`/courses/${id}`, data),
@@ -423,6 +425,11 @@ export const feedbackAPI = {
   create: (data) => post('/feedback', data),
   update: (id, data) => put(`/feedback/${id}`, data),
   delete: (id) => del(`/feedback/${id}`),
+  checkMyCourse: (courseId) => get(`/feedback/check/${courseId}`),
+  getByCourse: (params = {}) => {
+    const qs = Object.entries(params).map(([k, v]) => `${k}=${encodeURIComponent(v)}`).join('&');
+    return get(`/feedback/by-course${qs ? '?' + qs : ''}`);
+  },
 };
 
 export const blogAPI = {

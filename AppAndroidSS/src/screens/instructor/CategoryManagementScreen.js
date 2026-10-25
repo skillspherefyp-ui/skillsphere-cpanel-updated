@@ -13,6 +13,7 @@ import {
 import Toast from 'react-native-toast-message';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
+import StatsCard from '../../components/ui/StatsCard';
 import MainLayout from '../../components/ui/MainLayout';
 import AppInput from '../../components/ui/AppInput';
 import AppButton from '../../components/ui/AppButton';
@@ -55,7 +56,7 @@ const CategoryManagementScreen = () => {
   const isTablet = width > 768;
   const isMobile = width <= 480;
 
-  const isSuperInstructor = user?.role === 'admin';
+  const isAdmin = user?.role === 'admin';
 
   const sidebarItems = getSidebarItems(user?.role);
 
@@ -80,11 +81,9 @@ const CategoryManagementScreen = () => {
   };
 
   const handleNavigate = (route) => {
-    if (isSuperInstructor) {
+    if (isAdmin) {
       if (route === 'ManageInstructors') {
         navigation.navigate('ManageUsers', { userType: 'instructor' });
-      } else if (route === 'ManageExperts') {
-        navigation.navigate('ManageUsers', { userType: 'expert' });
       } else if (route === 'Categories') {
         navigation.navigate('CategoryManagement');
       } else {
@@ -223,9 +222,9 @@ const CategoryManagementScreen = () => {
     <MainLayout
       showSidebar={true}
       sidebarItems={sidebarItems}
-      activeRoute={isSuperInstructor ? "Categories" : "CategoryManagement"}
+      activeRoute={isAdmin ? "Categories" : "CategoryManagement"}
       onNavigate={handleNavigate}
-      userInfo={{ name: user?.name, role: isSuperInstructor ? 'Admin' : 'Instructor', avatar: user?.avatar }}
+      userInfo={{ name: user?.name, role: isAdmin ? 'Admin' : 'Instructor', avatar: user?.avatar }}
       onLogout={logout}
       onSettings={() => navigation.navigate('Settings')}
     >
@@ -281,64 +280,25 @@ const CategoryManagementScreen = () => {
 
         {/* Stats Section */}
         <View style={styles.statsSection}>
-          {/* Total Categories */}
-          <View
-            style={[
-              styles.statCardNew,
-              {
-                backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#FFFFFF',
-                borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(26,26,46,0.07)',
-              },
-            ]}
-          >
-            <View style={[styles.statIconCircle, { backgroundColor: 'rgba(255,140,66,0.12)' }]}>
-              <Icon name="layers" size={20} color={ORANGE} />
-            </View>
-            <Text style={[styles.statValueNew, { color: ORANGE }]}>{stats.totalCategories}</Text>
-            <Text style={[styles.statLabelNew, { color: theme.colors.textSecondary }]}>
-              Total Categories
-            </Text>
-          </View>
-
-          {/* Total Courses */}
-          <View
-            style={[
-              styles.statCardNew,
-              {
-                backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#FFFFFF',
-                borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(26,26,46,0.07)',
-              },
-            ]}
-          >
-            <View style={[styles.statIconCircle, { backgroundColor: 'rgba(99,102,241,0.12)' }]}>
-              <Icon name="book" size={20} color="#6366F1" />
-            </View>
-            <Text style={[styles.statValueNew, { color: '#6366F1' }]}>{stats.totalCourses}</Text>
-            <Text style={[styles.statLabelNew, { color: theme.colors.textSecondary }]}>
-              Total Courses
-            </Text>
-          </View>
-
-          {/* Avg Per Category */}
-          <View
-            style={[
-              styles.statCardNew,
-              {
-                backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#FFFFFF',
-                borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(26,26,46,0.07)',
-              },
-            ]}
-          >
-            <View style={[styles.statIconCircle, { backgroundColor: 'rgba(16,185,129,0.12)' }]}>
-              <Icon name="bar-chart" size={20} color="#10B981" />
-            </View>
-            <Text style={[styles.statValueNew, { color: '#10B981' }]}>
-              {stats.avgCoursesPerCategory}
-            </Text>
-            <Text style={[styles.statLabelNew, { color: theme.colors.textSecondary }]}>
-              Avg Per Category
-            </Text>
-          </View>
+          <StatsCard
+            icon="layers"
+            color={ORANGE}
+            value={stats.totalCategories}
+            label="Total Categories"
+          />
+          <StatsCard
+            icon="book"
+            color="#6366F1"
+            value={stats.totalCourses}
+            label="Total Courses"
+          />
+          <StatsCard
+            icon="bar-chart"
+            color="#10B981"
+            value={stats.avgCoursesPerCategory}
+            label="Avg Per Category"
+            ratio={stats.totalCategories > 0 ? Math.min(1, stats.avgCoursesPerCategory / 10) : 0}
+          />
         </View>
 
         {/* Categories Grid */}
@@ -524,8 +484,7 @@ const getStyles = (theme, isDark, isLargeScreen, isTablet, isMobile) =>
     bannerTextGroup: {
       flex: 1,
     },
-    pageTitle: {
-      fontSize: isMobile ? 18 : 22,
+    pageTitle: {      fontSize: isMobile ? 18 : 22,
       fontWeight: '700',
       fontFamily: theme.typography.fontFamily.bold,
       marginBottom: 2,
@@ -689,8 +648,7 @@ const getStyles = (theme, isDark, isLargeScreen, isTablet, isMobile) =>
       justifyContent: 'center',
       alignItems: 'center',
     },
-    modalTitle: {
-      fontSize: 18,
+    modalTitle: {      fontSize: 18,
       fontWeight: '700',
       fontFamily: theme.typography.fontFamily.bold,
       marginBottom: 2,

@@ -122,7 +122,28 @@ exports.verifyPayment = async (req, res) => {
       });
     }
 
-    const safepayOrderId = response.body?.data?.order_id || response.body?.data?.tracker?.order_id || null;
+    const d = response.body?.data;
+    const safepayOrderId =
+      d?.order_id ||
+      d?.tracker?.order_id ||
+      d?.order?.order_id ||
+      d?.metadata?.order_id ||
+      d?.tracker?.metadata?.order_id ||
+      null;
+
+    if (safepayOrderId) {
+      // Ownership check — only runs when Safepay returns the order_id
+      if (!safepayOrderId.startsWith(`SS-${req.user.id}-`)) {
+        return res.status(403).json({ error: 'Payment verification failed: order does not belong to this user' });
+      }
+      const orderParts = safepayOrderId.split('-');
+      if (String(orderParts[2]) !== String(courseId)) {
+        return res.status(403).json({ error: 'Payment verification failed: order course mismatch' });
+      }
+    } else {
+      console.warn('[Safepay verify] order_id not found in response — skipping ownership check. body:', JSON.stringify(response.body));
+    }
+
     const certificate = await issueCertificate(userId, courseId, req, safepayOrderId);
     res.json({ success: true, certificate });
   } catch (err) {
@@ -137,17 +158,24 @@ exports.webhook = async (req, res) => {
   res.json({ received: true }); // always respond fast
 
   try {
-    // Verify signature if Safepay provides it
+    // Mandatory signature verification
     const signature = req.headers['x-sfpy-signature'];
-    if (signature && SAFEPAY_SECRET) {
-      const expected = crypto
-        .createHmac('sha256', SAFEPAY_SECRET)
-        .update(JSON.stringify(req.body))
-        .digest('hex');
-      if (signature !== expected) {
+    if (!signature || !SAFEPAY_SECRET) {
+      console.error('Webhook: missing signature or secret — rejecting');
+      return;
+    }
+    const expected = crypto
+      .createHmac('sha256', SAFEPAY_SECRET)
+      .update(JSON.stringify(req.body))
+      .digest('hex');
+    try {
+      if (!crypto.timingSafeEqual(Buffer.from(signature, 'hex'), Buffer.from(expected, 'hex'))) {
         console.error('Webhook: invalid signature');
         return;
       }
+    } catch {
+      console.error('Webhook: malformed signature');
+      return;
     }
 
     const { event, data } = req.body || {};
@@ -168,13 +196,17 @@ exports.webhook = async (req, res) => {
 
 // ── Shared: issue certificate after payment ─────────────────────────────────
 async function issueCertificate(userId, courseId, req, safepayOrderId = null) {
-  const { Certificate, Course, User, CertificateTemplate, TemplateCourse } = require('../models');
+  const { Certificate, Course, User, CertificateTemplate, TemplateCourse, Enrollment } = require('../models');
   const { generateAndSaveCertificate } = require('../services/certificateService');
   const { sendCertificateEmail } = require('../services/emailService');
 
   // Idempotent — don't double-issue
   const existing = await Certificate.findOne({ where: { userId, courseId } });
   if (existing) return existing;
+
+  // Require course completion before issuing certificate
+  const enrollment = await Enrollment.findOne({ where: { userId, courseId, status: 'completed' } });
+  if (!enrollment) throw new Error(`User ${userId} has not completed course ${courseId}`);
 
   const [course, user] = await Promise.all([
     Course.findByPk(courseId),

@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
+import StatsCard from '../../components/ui/StatsCard';
 import MainLayout from '../../components/ui/MainLayout';
 import UserAvatar from '../../components/ui/UserAvatar';
 import AppInput from '../../components/ui/AppInput';
@@ -45,16 +46,14 @@ const StudentListScreen = () => {
   const isTablet = width > 768;
   const isMobile = width <= 480;
 
-  const isSuperInstructor = user?.role === 'admin';
+  const isAdmin = user?.role === 'admin';
 
   const sidebarItems = getSidebarItems(user?.role);
 
   const handleNavigate = (route) => {
-    if (isSuperInstructor) {
+    if (isAdmin) {
       if (route === 'ManageInstructors') {
         navigation.navigate('ManageUsers', { userType: 'instructor' });
-      } else if (route === 'ManageExperts') {
-        navigation.navigate('ManageUsers', { userType: 'expert' });
       } else if (route === 'Categories') {
         navigation.navigate('CategoryManagement');
       } else {
@@ -268,7 +267,7 @@ const StudentListScreen = () => {
       sidebarItems={sidebarItems}
       activeRoute="Students"
       onNavigate={handleNavigate}
-      userInfo={{ name: user?.name, role: isSuperInstructor ? 'Admin' : 'Instructor', avatar: user?.avatar }}
+      userInfo={{ name: user?.name, role: isAdmin ? 'Admin' : 'Instructor', avatar: user?.avatar }}
       onLogout={logout}
       onSettings={() => navigation.navigate('Settings')}
     >
@@ -354,68 +353,32 @@ const StudentListScreen = () => {
 
         {/* Stats Section */}
         <View style={styles.statsSection}>
-          {/* Total Students */}
-          <View
-            style={[
-              styles.statCardNew,
-              {
-                backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#FFFFFF',
-                borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(26,26,46,0.07)',
-              },
-            ]}
-          >
-            <View style={[styles.statIconCircle, { backgroundColor: 'rgba(34,211,238,0.12)' }]}>
-              <Icon name="people" size={20} color="#22D3EE" />
-            </View>
-            <Text style={[styles.statValueNew, { color: '#22D3EE' }]}>
-              {stats.totalStudents}
-            </Text>
-            <Text style={[styles.statLabelNew, { color: theme.colors.textSecondary }]}>
-              Total Students
-            </Text>
-          </View>
-
-          {/* Active */}
-          <View
-            style={[
-              styles.statCardNew,
-              {
-                backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#FFFFFF',
-                borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(26,26,46,0.07)',
-              },
-            ]}
-          >
-            <View style={[styles.statIconCircle, { backgroundColor: 'rgba(16,185,129,0.12)' }]}>
-              <Icon name="checkmark-circle" size={20} color="#10B981" />
-            </View>
-            <Text style={[styles.statValueNew, { color: '#10B981' }]}>
-              {stats.activeStudents}
-            </Text>
-            <Text style={[styles.statLabelNew, { color: theme.colors.textSecondary }]}>
-              Active
-            </Text>
-          </View>
-
-          {/* Inactive */}
-          <View
-            style={[
-              styles.statCardNew,
-              {
-                backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#FFFFFF',
-                borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(26,26,46,0.07)',
-              },
-            ]}
-          >
-            <View style={[styles.statIconCircle, { backgroundColor: 'rgba(239,68,68,0.12)' }]}>
-              <Icon name="close-circle" size={20} color="#EF4444" />
-            </View>
-            <Text style={[styles.statValueNew, { color: '#EF4444' }]}>
-              {stats.inactiveStudents}
-            </Text>
-            <Text style={[styles.statLabelNew, { color: theme.colors.textSecondary }]}>
-              Inactive
-            </Text>
-          </View>
+          <StatsCard
+            icon="people"
+            color="#22D3EE"
+            value={stats.totalStudents}
+            label="Total Students"
+            onPress={() => setStatusFilter(null)}
+            isActive={statusFilter === null}
+          />
+          <StatsCard
+            icon="checkmark-circle"
+            color="#10B981"
+            value={stats.activeStudents}
+            label="Active"
+            ratio={stats.totalStudents > 0 ? stats.activeStudents / stats.totalStudents : 0}
+            onPress={() => setStatusFilter(statusFilter === true ? null : true)}
+            isActive={statusFilter === true}
+          />
+          <StatsCard
+            icon="close-circle"
+            color="#EF4444"
+            value={stats.inactiveStudents}
+            label="Inactive"
+            ratio={stats.totalStudents > 0 ? stats.inactiveStudents / stats.totalStudents : 0}
+            onPress={() => setStatusFilter(statusFilter === false ? null : false)}
+            isActive={statusFilter === false}
+          />
         </View>
 
         {/* Search & Filter Section */}
@@ -593,8 +556,7 @@ const getStyles = (theme, isDark, isLargeScreen, isTablet, isMobile) =>
       alignItems: 'center',
       zIndex: 1,
     },
-    pageTitle: {
-      fontSize: isMobile ? 18 : 22,
+    pageTitle: {      fontSize: isMobile ? 18 : 22,
       fontWeight: '700',
       fontFamily: theme.typography.fontFamily.bold,
       marginBottom: 2,

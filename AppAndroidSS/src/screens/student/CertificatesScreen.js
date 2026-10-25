@@ -25,7 +25,7 @@ import EmptyState from '../../components/ui/EmptyState';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { certificateAPI, enrollmentAPI, API_BASE } from '../../services/apiClient';
+import { certificateAPI, enrollmentAPI, feedbackAPI, API_BASE } from '../../services/apiClient';
 import { getSidebarItems } from '../../utils/sidebarItems';
 
 const CertificatesScreen = () => {
@@ -41,6 +41,7 @@ const CertificatesScreen = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOrder, setSortOrder] = useState('newest');
   const [showSortDropdown, setShowSortDropdown] = useState(false);
+  const [checkingCourseId, setCheckingCourseId] = useState(null);
 
   const isWeb = Platform.OS === 'web';
   const isLargeScreen = width > 1024;
@@ -158,12 +159,30 @@ const CertificatesScreen = () => {
     return `${API_BASE.replace('/api', '')}${certificateUrl}`;
   };
 
-  // Handle view certificate — navigate to preview screen
+  // Handle view certificate — navigate to preview screen (already issued, no feedback gate)
   const handleViewCertificate = (certificate) => {
     navigation.navigate('CertificatePreview', {
       courseId: certificate.courseId,
       courseName: certificate.course?.name || 'Course',
     });
+  };
+
+  // Handle pending course — check feedback first, gate if not submitted
+  const handleGetCertificate = async (courseId, courseName) => {
+    setCheckingCourseId(courseId);
+    try {
+      const res = await feedbackAPI.checkMyCourse(courseId);
+      if (res.submitted) {
+        navigation.navigate('CertificatePreview', { courseId, courseName });
+      } else {
+        navigation.navigate('CourseFeedback', { courseId, courseName });
+      }
+    } catch {
+      // If check fails, send to feedback anyway
+      navigation.navigate('CourseFeedback', { courseId, courseName });
+    } finally {
+      setCheckingCourseId(null);
+    }
   };
 
   // Handle download certificate
@@ -398,15 +417,19 @@ const CertificatesScreen = () => {
 
                     <TouchableOpacity
                       style={[styles.actionBtn, styles.downloadBtn,
-                        { backgroundColor: '#F59E0B', borderWidth: 0, flex: undefined, paddingHorizontal: 16 }]}
-                      onPress={() => navigation.navigate('CertificatePreview', {
-                        courseId: enrollment.courseId,
-                        courseName: enrollment.course?.name || 'Course',
-                      })}
+                        { backgroundColor: '#F59E0B', borderWidth: 0, flex: undefined, paddingHorizontal: 16,
+                          opacity: checkingCourseId === enrollment.courseId ? 0.6 : 1 }]}
+                      onPress={() => handleGetCertificate(enrollment.courseId, enrollment.course?.name || 'Course')}
+                      disabled={checkingCourseId === enrollment.courseId}
                       activeOpacity={0.85}
                     >
-                      <Icon name="ribbon-outline" size={16} color="#fff" />
-                      <Text style={[styles.actionBtnText, { color: '#fff' }]}>Get Certificate</Text>
+                      {checkingCourseId === enrollment.courseId
+                        ? <ActivityIndicator size="small" color="#fff" />
+                        : <>
+                            <Icon name="star-outline" size={16} color="#fff" />
+                            <Text style={[styles.actionBtnText, { color: '#fff' }]}>Rate & Get Certificate</Text>
+                          </>
+                      }
                     </TouchableOpacity>
                   </View>
                 </Animated.View>
@@ -582,8 +605,7 @@ const getStyles = (theme, isDark, isLargeScreen, isTablet, isMobile) =>
     bannerTextGroup: {
       flex: 1,
     },
-    pageTitle: {
-      fontSize: isMobile ? 18 : 22,
+    pageTitle: {      fontSize: isMobile ? 18 : 22,
       fontWeight: '700',
       fontFamily: theme.typography.fontFamily.bold,
       marginBottom: 2,
@@ -713,8 +735,7 @@ const getStyles = (theme, isDark, isLargeScreen, isTablet, isMobile) =>
       justifyContent: 'center',
       alignItems: 'center',
     },
-    sectionTitle: {
-      fontSize: isMobile ? 16 : 18,
+    sectionTitle: {      fontSize: isMobile ? 16 : 18,
       fontWeight: '700',
       fontFamily: theme.typography.fontFamily.bold,
       borderLeftWidth: 3,

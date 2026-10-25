@@ -11,6 +11,7 @@ import StudentDetailScreen from '../screens/instructor/StudentDetailScreen';
 import CategoryManagementScreen from '../screens/instructor/CategoryManagementScreen';
 import CertificateManagementScreen from '../screens/instructor/CertificateManagementScreen';
 import FeedbackScreen from '../screens/instructor/FeedbackScreen';
+import CourseFeedbackDetailScreen from '../screens/instructor/CourseFeedbackDetailScreen';
 import ForgotPasswordScreen from '../screens/auth/ForgotPasswordScreen';
 import OTPVerificationScreen from '../screens/auth/OTPVerificationScreen';
 import SettingsScreen from '../screens/auth/SettingsScreen';
@@ -44,6 +45,7 @@ const InstructorNavigator = () => {
       <Stack.Screen name="StudentDetail" component={StudentDetailScreen} />
       <Stack.Screen name="CertificateManagement" component={CertificateManagementScreen} />
       <Stack.Screen name="Feedback" component={FeedbackScreen} />
+      <Stack.Screen name="CourseFeedbackDetail" component={CourseFeedbackDetailScreen} />
       <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
       <Stack.Screen name="OTPVerification" component={OTPVerificationScreen} />
       <Stack.Screen name="CategoryManagement" component={CategoryManagementScreen} />

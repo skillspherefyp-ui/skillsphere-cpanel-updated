@@ -21,8 +21,12 @@ const authenticateToken = async (req, res, next) => {
       return res.status(401).json({ error: 'Account is inactive' });
     }
 
+    if ((decoded.tv ?? 0) !== (user.tokenVersion ?? 0)) {
+      return res.status(401).json({ error: 'Session expired. Please log in again.' });
+    }
+
     // Ensure permissions object exists for instructor users
-    if ((user.role === 'instructor' || user.role === 'expert') && !user.permissions) {
+    if (user.role === 'instructor' && !user.permissions) {
       user.permissions = {
         canManageAllCourses: true,
         canManageCategories: true,
@@ -32,7 +36,7 @@ const authenticateToken = async (req, res, next) => {
       };
     }
 
-    req.user = user;
+    req.user = user.toJSON();
     next();
   } catch (error) {
     console.error('Auth error:', error.message);
@@ -50,13 +54,6 @@ const requireAdmin = (req, res, next) => {
 const requireInstructor = (req, res, next) => {
   if (!['instructor', 'admin'].includes(req.user.role)) {
     return res.status(403).json({ error: 'Instructor access required' });
-  }
-  next();
-};
-
-const requireExpert = (req, res, next) => {
-  if (!['expert', 'instructor', 'admin'].includes(req.user.role)) {
-    return res.status(403).json({ error: 'Expert access required' });
   }
   next();
 };
@@ -121,7 +118,6 @@ module.exports = {
   optionalAuth,
   requireAdmin,
   requireInstructor,
-  requireExpert,
   requireStudent,
   checkPermission,
   canManageAllCourses,

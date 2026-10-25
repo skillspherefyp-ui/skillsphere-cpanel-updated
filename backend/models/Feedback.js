@@ -11,9 +11,14 @@ const Feedback = sequelize.define('Feedback', {
     type: DataTypes.STRING,
     allowNull: false
   },
-  expertName: {
+  studentName: {
     type: DataTypes.STRING,
     allowNull: false
+  },
+  userId: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    references: { model: 'users', key: 'id' }
   },
   feedback: {
     type: DataTypes.TEXT,

@@ -933,8 +933,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 8,
   },
-  welcomeTitle: {
-    fontSize: 24,
+  welcomeTitle: {    fontSize: 24,
     fontWeight: '700',
     textAlign: 'center',
   },

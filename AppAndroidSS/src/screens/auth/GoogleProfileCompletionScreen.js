@@ -197,7 +197,7 @@ const s = StyleSheet.create({
   glow2:        { position: 'absolute', width: 220, height: 220, borderRadius: 110, bottom: 60, left: -70, zIndex: 0 },
   topBar:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: Platform.OS === 'ios' ? 54 : 16, paddingBottom: 12, zIndex: 10 },
   logoImg:      { width: 28, height: 28, borderRadius: 7 },
-  logoText:     { fontWeight: '800', fontSize: 14, letterSpacing: 1 },
+  logoText:     { fontFamily: Platform.OS === 'web' ? 'Fredoka' : 'Fredoka-Bold', fontWeight: '800', fontSize: 14, letterSpacing: 1 },
   scroll:       { flexGrow: 1, paddingHorizontal: 20, paddingTop: 10, paddingBottom: 40 },
   brandHeader:  { alignItems: 'center', paddingVertical: 32 },
   avatarWrap:         { marginBottom: 18, position: 'relative' },
@@ -206,9 +206,9 @@ const s = StyleSheet.create({
   title:        { fontSize: 26, fontWeight: '900', marginBottom: 10 },
   subtitle:     { fontSize: 14, textAlign: 'center', lineHeight: 22 },
   card:         { borderRadius: 24, borderWidth: 1, padding: 24 },
-  primaryBtn:   { height: 52, borderRadius: 12, backgroundColor: ORANGE, borderWidth: 1, borderColor: '#E77828', justifyContent: 'center', alignItems: 'center', shadowColor: '#C96A24', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.16, shadowRadius: 6, elevation: 3, marginBottom: 12 },
+  primaryBtn:   { paddingVertical: 13, paddingHorizontal: 28, borderRadius: 9999, backgroundColor: ORANGE, borderWidth: 1, borderColor: '#E77828', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', shadowColor: '#C96A24', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.16, shadowRadius: 6, elevation: 3, marginBottom: 12 },
   primaryBtnText: { color: '#FFFFFF', fontSize: 15, fontWeight: '800', letterSpacing: 0.12 },
-  skipBtn:      { height: 44, borderRadius: 12, borderWidth: 1, justifyContent: 'center', alignItems: 'center' },
+  skipBtn:      { paddingVertical: 10, paddingHorizontal: 28, borderRadius: 9999, borderWidth: 1, justifyContent: 'center', alignItems: 'center', alignSelf: 'center' },
   skipBtnText:  { fontSize: 14, fontWeight: '600' },
 });
 

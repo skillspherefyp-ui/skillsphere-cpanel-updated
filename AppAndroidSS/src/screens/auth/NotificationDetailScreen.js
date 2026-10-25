@@ -171,8 +171,7 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: 0,
   },
-  headerTitle: {
-    fontSize: 20,
+  headerTitle: {    fontSize: 20,
     fontWeight: '800',
   },
   headerSubtitle: {
@@ -184,8 +183,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     padding: 20,
   },
-  title: {
-    fontSize: 20,
+  title: {    fontSize: 20,
     fontWeight: '700',
     marginBottom: 12,
     lineHeight: 28,

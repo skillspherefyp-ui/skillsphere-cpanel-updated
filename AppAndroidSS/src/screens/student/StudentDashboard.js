@@ -322,81 +322,85 @@ const lineChartStyles = StyleSheet.create({
   },
 });
 
-// Stats Card — EduView style: colored top accent border, icon+label row, huge bold number
-const DashboardStatCard = ({ icon, iconColor, value, label, change, theme, isDark, style }) => {
-  const isPositive = change && change.startsWith('+');
+const DashboardStatCard = ({ icon, iconColor, value, label, change, isDark, style, onPress }) => {
+  const { width } = useWindowDimensions();
+  const isMobile = width <= 480;
+  const isWeb = Platform.OS === 'web';
+  const isPositive = !change || change.startsWith('+');
+  const changeColor = isPositive ? '#10B981' : '#EF4444';
+  const changeIcon  = isPositive ? 'trending-up' : 'trending-down';
+  const Wrapper = onPress ? TouchableOpacity : View;
 
   return (
-    <View
+    <Wrapper
+      activeOpacity={0.8}
+      onPress={onPress}
       style={[
-        dashboardStatStyles.card,
+        dsc.card,
         {
-          backgroundColor: isDark ? theme.colors.card : '#FFFFFF',
-          borderColor: isDark ? theme.colors.border : '#EEEEEE',
-          borderTopColor: iconColor,
+          backgroundColor: isDark ? `${iconColor}14` : `${iconColor}0d`,
+          borderColor: `${iconColor}30`,
+          borderLeftColor: iconColor,
         },
+        isWeb && !isDark ? { boxShadow: '0 4px 20px rgba(0,0,0,0.06)' } : {},
         style,
       ]}
     >
-      <View style={dashboardStatStyles.header}>
-        <View style={[dashboardStatStyles.iconContainer, { backgroundColor: iconColor + '18' }]}>
-          <Icon name={icon} size={17} color={iconColor} />
+      <View style={dsc.watermark} pointerEvents="none">
+        <Icon name={icon} size={72} color={iconColor} style={{ opacity: 0.08 }} />
+      </View>
+      <View style={dsc.topRow}>
+        <View style={[dsc.iconBadge, { backgroundColor: `${iconColor}22` }]}>
+          <Icon name={icon} size={15} color={iconColor} />
         </View>
-        <Text style={[dashboardStatStyles.label, { color: theme.colors.textSecondary }]} numberOfLines={1}>
+        <Text style={[dsc.label, { color: isDark ? `${iconColor}cc` : `${iconColor}bb` }]} numberOfLines={1}>
           {label}
         </Text>
+        {onPress && <Icon name="chevron-forward" size={13} color={`${iconColor}80`} />}
       </View>
-      <Text style={[dashboardStatStyles.value, { color: isDark ? '#FFFFFF' : '#1A1A2E' }]}>
+      <Text
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.6}
+        style={[dsc.value, {
+          color: isDark ? '#FFFFFF' : '#0F172A',
+          fontSize: isMobile ? 28 : 36,
+        }]}
+      >
         {typeof value === 'number' ? value.toLocaleString() : value}
       </Text>
-      {change && (
-        <View style={dashboardStatStyles.changeRow}>
-          <View style={[dashboardStatStyles.changeDot, { backgroundColor: isPositive ? '#10B981' : '#EF4444' }]} />
-          <Text style={[dashboardStatStyles.change, { color: isPositive ? '#10B981' : '#EF4444' }]}>
-            {change} from last month
-          </Text>
+      {change ? (
+        <View style={[dsc.badge, { backgroundColor: `${changeColor}18`, borderColor: `${changeColor}30` }]}>
+          <Icon name={changeIcon} size={12} color={changeColor} />
+          <Text style={[dsc.badgeText, { color: changeColor }]}>{change} vs last month</Text>
         </View>
+      ) : (
+        <View style={dsc.badgePlaceholder} />
       )}
-    </View>
+    </Wrapper>
   );
 };
 
-const dashboardStatStyles = StyleSheet.create({
+const dsc = StyleSheet.create({
   card: {
-    padding: 16,
+    padding: 18,
     borderRadius: 16,
-    borderWidth: 1.5,
-    borderTopWidth: 3,
+    borderWidth: 1,
+    borderLeftWidth: 4,
+    overflow: 'hidden',
+    position: 'relative',
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 12,
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: '600',
-    flex: 1,
-  },
-  iconContainer: {
-    width: 34,
-    height: 34,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  value: {
-    fontSize: 34,
-    fontWeight: '900',
-    marginBottom: 6,
-    letterSpacing: -0.5,
-  },
-  changeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-  },
+  watermark: { position: 'absolute', top: -8, right: -8 },
+  topRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 14 },
+  iconBadge: { width: 30, height: 30, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
+  label: { fontSize: 12, fontWeight: '700', flex: 1, letterSpacing: 0.2 },
+  value: { fontWeight: '900', letterSpacing: -1, marginBottom: 12 },
+  badge: { flexDirection: 'row', alignItems: 'center', gap: 5, alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20, borderWidth: 1 },
+  badgeText: { fontSize: 11, fontWeight: '700' },
+  badgePlaceholder: { height: 26 },
+});
+
+const dashboardStatStyles = StyleSheet.create({
   changeDot: {
     width: 6,
     height: 6,
@@ -685,8 +689,7 @@ const badgeCompStyles = StyleSheet.create({
     borderRadius: 5,
   },
   emblem: { position: 'absolute', top: 16 },
-  shieldNum: {
-    position: 'absolute',
+  shieldNum: {    position: 'absolute',
     top: 37,
     color: 'rgba(255,255,255,0.96)',
     fontSize: 20,
@@ -939,8 +942,7 @@ const streakCardStyles = StyleSheet.create({
     alignItems: 'flex-end',
     gap: 5,
   },
-  countNum: {
-    fontSize: 34,
+  countNum: {    fontSize: 34,
     fontWeight: '900',
     letterSpacing: -1.5,
     lineHeight: 38,
@@ -1554,18 +1556,18 @@ const StudentDashboard = () => {
             value={dashboardStats.totalEnrolled}
             label="Enrolled Courses"
             change={dashboardStats.enrolledChange}
-            theme={theme}
             isDark={isDark}
             style={styles.statCard}
+            onPress={() => navigation.navigate('EnrolledCourses')}
           />
           <DashboardStatCard
             icon="time-outline"
             iconColor="#F59E0B"
             value={dashboardStats.inProgress}
             label="In Progress"
-            theme={theme}
             isDark={isDark}
             style={styles.statCard}
+            onPress={() => navigation.navigate('EnrolledCourses')}
           />
           <DashboardStatCard
             icon="checkmark-circle-outline"
@@ -1573,18 +1575,18 @@ const StudentDashboard = () => {
             value={dashboardStats.completed}
             label="Completed"
             change={dashboardStats.completedChange}
-            theme={theme}
             isDark={isDark}
             style={styles.statCard}
+            onPress={() => navigation.navigate('EnrolledCourses')}
           />
           <DashboardStatCard
             icon="ribbon-outline"
             iconColor="#8B5CF6"
             value={dashboardStats.totalCertificates}
             label="Certificates"
-            theme={theme}
             isDark={isDark}
             style={styles.statCard}
+            onPress={() => navigation.navigate('Certificates')}
           />
         </View>
 
@@ -2149,8 +2151,7 @@ const getStyles = (theme, isDark, isLargeScreen, isTablet, isMobile) =>
       alignItems: 'flex-start',
       marginBottom: 16,
     },
-    sectionTitle: {
-      fontSize: isMobile ? 16 : 18,
+    sectionTitle: {      fontSize: isMobile ? 16 : 18,
       fontWeight: '800',
       fontFamily: theme.typography.fontFamily.semiBold,
       letterSpacing: -0.3,
@@ -2182,7 +2183,6 @@ const getStyles = (theme, isDark, isLargeScreen, isTablet, isMobile) =>
     statCard: {
       flex: 1,
       minWidth: isMobile ? '47%' : isLargeScreen ? 200 : isTablet ? 170 : 150,
-      maxWidth: isLargeScreen ? 280 : undefined,
     },
 
     // ── Charts ──

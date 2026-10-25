@@ -158,8 +158,7 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: 200,
   },
-  title: {
-    fontSize: 24, // Section 5.2: H1 - Page Title
+  title: {    fontSize: 24, // Section 5.2: H1 - Page Title
     fontWeight: '800',
     lineHeight: 32,
   },

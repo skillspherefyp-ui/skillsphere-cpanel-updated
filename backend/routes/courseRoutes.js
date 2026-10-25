@@ -8,7 +8,8 @@ const { authenticateToken, optionalAuth } = require('../middleware/auth');
 // optionalAuth attaches req.user when a valid JWT is present so per-student
 // topic progress can be overlaid without blocking unauthenticated requests.
 router.get('/', optionalAuth, courseController.getAllCourses);
-router.get('/top', courseController.getTopCourses); // must be before /:id
+router.get('/top', courseController.getTopCourses);   // must be before /:id
+router.get('/stats', courseController.getPublicStats); // must be before /:id
 router.get('/recommendations', authenticateToken, courseRecommendationController.getRecommendations); // must be before /:id
 router.get('/:id', courseController.getCourseById);
 

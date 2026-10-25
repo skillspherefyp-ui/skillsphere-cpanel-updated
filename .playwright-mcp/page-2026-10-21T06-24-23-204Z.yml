@@ -1,0 +1,171 @@
+- generic [active] [ref=f20e1]:
+  - generic [ref=f20e4]:
+    - generic [ref=f20e20]:
+      - generic [ref=f20e21] [cursor=pointer]: 
+      - generic [ref=f20e23]: SKILLSPHERE
+      - generic [ref=f20e27] [cursor=pointer]: 
+    - generic: 
+  - generic [aria-hidden] [ref=f20e35]:
+    - heading [level=1] [ref=f20e36]: SkillSphere - Online Courses & AI Learning Platform Pakistan
+    - heading [level=2] [ref=f20e37]: "Pakistan's #1 AI-Powered Online Learning Platform"
+    - paragraph [ref=f20e38]: SkillSphere is Pakistan's leading online education and e-learning platform. We offer AI-powered courses, expert-led training, personalized AI tutors, and verified certificates. Learn new skills online from anywhere in Pakistan at your own pace.
+    - heading [level=2] [ref=f20e39]: SkillSphere Courses
+    - paragraph [ref=f20e40]: SkillSphere offers hundreds of online courses across multiple categories. Browse SkillSphere courses in technology, cybersecurity, programming, business, design, and more.
+    - heading [level=2] [ref=f20e41]: Programming & Software Development Courses
+    - list [ref=f20e42]:
+      - listitem [ref=f20e43]: Python Programming for Beginners
+      - listitem [ref=f20e44]: Advanced Python Development
+      - listitem [ref=f20e45]: JavaScript Full Stack Development
+      - listitem [ref=f20e46]: React.js and React Native Development
+      - listitem [ref=f20e47]: Node.js Backend Development
+      - listitem [ref=f20e48]: Web Development Bootcamp
+      - listitem [ref=f20e49]: HTML, CSS and JavaScript for Beginners
+      - listitem [ref=f20e50]: PHP and MySQL Development
+      - listitem [ref=f20e51]: Java Programming
+      - listitem [ref=f20e52]: C++ Programming
+      - listitem [ref=f20e53]: C# and .NET Development
+      - listitem [ref=f20e54]: Flutter Mobile App Development
+      - listitem [ref=f20e55]: Android App Development
+      - listitem [ref=f20e56]: iOS App Development with Swift
+      - listitem [ref=f20e57]: REST API Development
+      - listitem [ref=f20e58]: Database Design and SQL
+      - listitem [ref=f20e59]: MongoDB and NoSQL Databases
+      - listitem [ref=f20e60]: Git and GitHub for Developers
+      - listitem [ref=f20e61]: Docker and Kubernetes
+      - listitem [ref=f20e62]: DevOps Engineering
+      - listitem [ref=f20e63]: Cloud Computing with AWS
+      - listitem [ref=f20e64]: Microsoft Azure Fundamentals
+      - listitem [ref=f20e65]: Google Cloud Platform
+      - listitem [ref=f20e66]: Software Engineering Principles
+      - listitem [ref=f20e67]: System Design and Architecture
+    - heading [level=2] [ref=f20e68]: Cybersecurity & Ethical Hacking Courses
+    - list [ref=f20e69]:
+      - listitem [ref=f20e70]: Ethical Hacking for Beginners
+      - listitem [ref=f20e71]: Advanced Ethical Hacking
+      - listitem [ref=f20e72]: Penetration Testing
+      - listitem [ref=f20e73]: Cybersecurity Fundamentals
+      - listitem [ref=f20e74]: Network Security
+      - listitem [ref=f20e75]: Web Application Security
+      - listitem [ref=f20e76]: OWASP Top 10 Vulnerabilities
+      - listitem [ref=f20e77]: Kali Linux for Hackers
+      - listitem [ref=f20e78]: Bug Bounty Hunting
+      - listitem [ref=f20e79]: Malware Analysis
+      - listitem [ref=f20e80]: Digital Forensics
+      - listitem [ref=f20e81]: Incident Response
+      - listitem [ref=f20e82]: Security Operations Center (SOC)
+      - listitem [ref=f20e83]: CEH Certification Preparation
+      - listitem [ref=f20e84]: CompTIA Security+ Preparation
+      - listitem [ref=f20e85]: OSCP Preparation
+      - listitem [ref=f20e86]: Social Engineering and Phishing
+      - listitem [ref=f20e87]: Wireless Network Hacking
+      - listitem [ref=f20e88]: Cryptography Fundamentals
+      - listitem [ref=f20e89]: Dark Web and OSINT
+      - listitem [ref=f20e90]: Firewall and VPN Configuration
+      - listitem [ref=f20e91]: Cloud Security
+    - heading [level=2] [ref=f20e92]: Data Science & Artificial Intelligence Courses
+    - list [ref=f20e93]:
+      - listitem [ref=f20e94]: Data Science for Beginners
+      - listitem [ref=f20e95]: Machine Learning with Python
+      - listitem [ref=f20e96]: Deep Learning and Neural Networks
+      - listitem [ref=f20e97]: Artificial Intelligence Fundamentals
+      - listitem [ref=f20e98]: Natural Language Processing (NLP)
+      - listitem [ref=f20e99]: Computer Vision
+      - listitem [ref=f20e100]: Data Analysis with Pandas
+      - listitem [ref=f20e101]: Data Visualization with Matplotlib
+      - listitem [ref=f20e102]: TensorFlow and Keras
+      - listitem [ref=f20e103]: PyTorch for Deep Learning
+      - listitem [ref=f20e104]: Big Data with Hadoop and Spark
+      - listitem [ref=f20e105]: Business Intelligence and Power BI
+      - listitem [ref=f20e106]: Tableau for Data Visualization
+      - listitem [ref=f20e107]: Statistics for Data Science
+      - listitem [ref=f20e108]: AI Chatbot Development
+      - listitem [ref=f20e109]: Generative AI and ChatGPT
+      - listitem [ref=f20e110]: Prompt Engineering
+    - heading [level=2] [ref=f20e111]: Networking & IT Courses
+    - list [ref=f20e112]:
+      - listitem [ref=f20e113]: Computer Networking Fundamentals
+      - listitem [ref=f20e114]: CCNA Cisco Networking
+      - listitem [ref=f20e115]: Network Administration
+      - listitem [ref=f20e116]: Linux System Administration
+      - listitem [ref=f20e117]: Windows Server Administration
+      - listitem [ref=f20e118]: IT Support and Help Desk
+      - listitem [ref=f20e119]: CompTIA A+ Certification
+      - listitem [ref=f20e120]: CompTIA Network+ Certification
+      - listitem [ref=f20e121]: Virtualization with VMware
+      - listitem [ref=f20e122]: IoT Internet of Things
+    - heading [level=2] [ref=f20e123]: Business & Management Courses
+    - list [ref=f20e124]:
+      - listitem [ref=f20e125]: Business Management Fundamentals
+      - listitem [ref=f20e126]: Project Management Professional (PMP)
+      - listitem [ref=f20e127]: Agile and Scrum Methodology
+      - listitem [ref=f20e128]: Entrepreneurship and Startup
+      - listitem [ref=f20e129]: Financial Accounting
+      - listitem [ref=f20e130]: QuickBooks Accounting Software
+      - listitem [ref=f20e131]: Human Resource Management
+      - listitem [ref=f20e132]: Supply Chain Management
+      - listitem [ref=f20e133]: E-commerce Business
+      - listitem [ref=f20e134]: Dropshipping Business Pakistan
+      - listitem [ref=f20e135]: Amazon FBA for Pakistanis
+      - listitem [ref=f20e136]: Freelancing on Upwork and Fiverr
+      - listitem [ref=f20e137]: Business Communication
+      - listitem [ref=f20e138]: Leadership and Management Skills
+    - heading [level=2] [ref=f20e139]: Digital Marketing Courses
+    - list [ref=f20e140]:
+      - listitem [ref=f20e141]: Digital Marketing Complete Course
+      - listitem [ref=f20e142]: Search Engine Optimization (SEO)
+      - listitem [ref=f20e143]: Google Ads and PPC Advertising
+      - listitem [ref=f20e144]: Facebook and Instagram Marketing
+      - listitem [ref=f20e145]: Social Media Marketing
+      - listitem [ref=f20e146]: Content Marketing
+      - listitem [ref=f20e147]: Email Marketing
+      - listitem [ref=f20e148]: Affiliate Marketing
+      - listitem [ref=f20e149]: YouTube Marketing
+      - listitem [ref=f20e150]: TikTok Marketing
+      - listitem [ref=f20e151]: Shopify and E-commerce Marketing
+      - listitem [ref=f20e152]: Brand Building and Strategy
+    - heading [level=2] [ref=f20e153]: Graphic Design & Creative Courses
+    - list [ref=f20e154]:
+      - listitem [ref=f20e155]: Graphic Design for Beginners
+      - listitem [ref=f20e156]: Adobe Photoshop Complete Course
+      - listitem [ref=f20e157]: Adobe Illustrator
+      - listitem [ref=f20e158]: Adobe Premiere Pro Video Editing
+      - listitem [ref=f20e159]: UI UX Design
+      - listitem [ref=f20e160]: Figma for Designers
+      - listitem [ref=f20e161]: Logo Design
+      - listitem [ref=f20e162]: 3D Modeling with Blender
+      - listitem [ref=f20e163]: Motion Graphics and Animation
+      - listitem [ref=f20e164]: Photography and Photo Editing
+      - listitem [ref=f20e165]: Canva for Beginners
+    - heading [level=2] [ref=f20e166]: Language & Soft Skills Courses
+    - list [ref=f20e167]:
+      - listitem [ref=f20e168]: English Speaking Course Pakistan
+      - listitem [ref=f20e169]: IELTS Preparation
+      - listitem [ref=f20e170]: Business English
+      - listitem [ref=f20e171]: Communication Skills
+      - listitem [ref=f20e172]: Public Speaking
+      - listitem [ref=f20e173]: Personality Development
+      - listitem [ref=f20e174]: Time Management
+      - listitem [ref=f20e175]: Critical Thinking
+      - listitem [ref=f20e176]: Interview Preparation Pakistan
+      - listitem [ref=f20e177]: CV and Resume Writing
+    - heading [level=2] [ref=f20e178]: SkillSphere AI Tutor
+    - paragraph [ref=f20e179]: SkillSphere's built-in AI tutor teaches you step by step with personalized lessons, AI-generated quizzes, interactive slides, and real-time Q&A. Our AI tutor adapts to your learning speed and helps you master any skill faster than traditional methods.
+    - heading [level=2] [ref=f20e180]: SkillSphere Certificates
+    - paragraph [ref=f20e181]: Earn verified completion certificates from SkillSphere after finishing any course. SkillSphere certificates are recognized by employers and can be shared on LinkedIn and your resume to boost your career in Pakistan.
+    - heading [level=2] [ref=f20e182]: Why Choose SkillSphere?
+    - list [ref=f20e183]:
+      - listitem [ref=f20e184]: AI-powered personalized learning experience
+      - listitem [ref=f20e185]: Expert instructors from Pakistan and around the world
+      - listitem [ref=f20e186]: Learn at your own pace from anywhere in Pakistan
+      - listitem [ref=f20e187]: Earn verified certificates on course completion
+      - listitem [ref=f20e188]: Affordable online courses for Pakistani students
+      - listitem [ref=f20e189]: Mobile-friendly — learn on phone, tablet or computer
+      - listitem [ref=f20e190]: Interactive quizzes and AI-generated assessments
+      - listitem [ref=f20e191]: Gamified learning with streaks and progress tracking
+      - listitem [ref=f20e192]: Courses in Urdu and English
+      - listitem [ref=f20e193]: Best online learning platform in Pakistan
+    - heading [level=2] [ref=f20e194]: Who is SkillSphere For?
+    - paragraph [ref=f20e195]: SkillSphere is for university students, college students, working professionals, fresh graduates, freelancers, job seekers, and anyone in Pakistan who wants to learn new skills, advance their career, or start a business online. Whether you are in Karachi, Lahore, Islamabad, Rawalpindi, Peshawar, Quetta, Multan, Faisalabad or any city in Pakistan — SkillSphere is for you.
+    - heading [level=2] [ref=f20e196]: Start Learning on SkillSphere Today
+    - paragraph [ref=f20e197]: Join SkillSphere now and start your learning journey. Sign up for free, browse SkillSphere courses, learn with AI tutors, and earn certificates. SkillSphere is the best online learning platform in Pakistan for skill development, career growth, and professional training.
+    - paragraph [ref=f20e198]: Visit skillsphere.com.pk to get started.

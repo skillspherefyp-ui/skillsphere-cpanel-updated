@@ -8,8 +8,7 @@ import {
   ScrollView,
   ActivityIndicator,
   useWindowDimensions,
-  Animated,
-} from 'react-native';
+  Animated, Platform} from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useTheme } from '../../context/ThemeContext';
 import ThemedView from '../../components/ThemedView';

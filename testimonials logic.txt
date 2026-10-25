@@ -1,0 +1,34 @@
+● Generally yes — most real websites use static or semi-static testimonials, not live database pulls. Here's how it actually works across different types of
+   sites:
+
+  ---
+  Static (most common)
+
+  Hardcoded in the frontend like yours. The team manually picks 6-10 strong quotes, writes them in, and they stay. 99% of landing pages do this — Coursera,
+  Udemy, Duolingo all have handpicked static testimonials on their marketing pages.
+
+  Why: Testimonials are curated marketing content, not a live feed. You want control over what appears.
+
+  ---
+  CMS-driven (mid-tier)
+
+  Testimonials stored in a database/CMS (like WordPress, Contentful, Sanity). The marketing team can add/edit them without touching code, but they're still
+  manually curated. The page fetches them on load.
+
+  ---
+  Real reviews (advanced)
+
+  Platforms like Udemy or Amazon pull actual user reviews — but only after filtering:
+  - Minimum star rating (e.g., 4+ stars only)
+  - Flagged for featured display by an algorithm or admin
+  - Usually cached, not real-time
+
+  ---
+  For SkillSphere
+
+  Your platform already has course ratings/reviews from students. You could make testimonials "real" by:
+  1. Adding a featured: true flag to the reviews table in your DB
+  2. An admin marks good reviews as featured
+  3. Landing page fetches GET /reviews?featured=true
+
+  But honestly for now, static is fine and standard. Real platforms only switch to dynamic testimonials when they have thousands of reviews to draw from.

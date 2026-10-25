@@ -1,5 +1,6 @@
 const express = require('express');
 const path = require('path');
+const helmet = require('helmet');
 require('dotenv').config({ path: path.resolve(__dirname, '.env') });
 
 const { sequelize, testConnection } = require('./config/database');
@@ -59,7 +60,6 @@ function parseAllowedOrigins(value) {
 
 function buildAllowedOrigins() {
   return Array.from(new Set([
-    'https://skill-sphere-app.vercel.app',
     'http://localhost:3000',
     'http://localhost:3001',
     'http://localhost:19006',
@@ -132,6 +132,8 @@ async function initAdmin() {
   }
 }
 
+app.use(helmet());
+
 app.use((req, res, next) => {
   const requestOrigin = normalizeOrigin(req.headers.origin);
 
@@ -146,8 +148,7 @@ app.use((req, res, next) => {
 
   if (
     !allowedOrigins.includes(requestOrigin) &&
-    !isPrivateNetworkOrigin(requestOrigin) &&
-    !(requestOrigin.includes('.vercel.app') && (requestOrigin.includes('skill-sphere') || requestOrigin.includes('skillsphere')))
+    !isPrivateNetworkOrigin(requestOrigin)
   ) {
     console.log('CORS blocked origin:', requestOrigin);
 
@@ -170,8 +171,8 @@ app.use((req, res, next) => {
   return next();
 });
 
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+app.use(express.json({ limit: '5mb' }));
+app.use(express.urlencoded({ extended: true, limit: '5mb' }));
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/assets', express.static(path.join(__dirname, 'assets')));

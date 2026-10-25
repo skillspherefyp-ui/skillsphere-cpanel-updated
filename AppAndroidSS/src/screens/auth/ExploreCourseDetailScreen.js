@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Image, useWindowDimensions, ActivityIndicator,
+  Image, useWindowDimensions, ActivityIndicator, Platform,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useTheme } from '../../context/ThemeContext';
@@ -201,6 +201,13 @@ const ExploreCourseDetailScreen = () => {
       .then(async res => {
         if (res.course) {
           setCourse(res.course);
+          navigation.setOptions({ title: res.course.name + ' | SkillSphere' });
+          // Hide SEO content div from real users (Google's renderer can't reach the API
+          // so it never hits this branch — seo-content stays visible for Googlebot)
+          if (typeof document !== 'undefined') {
+            const seoEl = document.getElementById('seo-content');
+            if (seoEl) seoEl.style.display = 'none';
+          }
           // Fetch prerequisite course names
           const ids = res.course.prerequisiteIds;
           if (Array.isArray(ids) && ids.length > 0) {

@@ -392,7 +392,7 @@ const getStyles = (theme, isDark, isWeb, isPersistent) => StyleSheet.create({
     fontWeight: '700',
     marginLeft: 12,
     letterSpacing: 1,
-    fontFamily: theme.typography.fontFamily.bold,
+    fontFamily: Platform.OS === 'web' ? 'Fredoka' : 'Fredoka-Bold',
   },
   navSection: {
     flex: 1,

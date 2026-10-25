@@ -1,7 +1,6 @@
 import React from 'react';
 import {
-  View, Text, ScrollView, StyleSheet,
-} from 'react-native';
+  View, Text, ScrollView, StyleSheet, Platform} from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useTheme } from '../../context/ThemeContext';
 import AppHeader from '../../components/ui/AppHeader';
@@ -54,22 +53,21 @@ const OwnershipScreen = ({ navigation }) => {
         }]}>
           <Icon name="calendar-outline" size={14} color={ORANGE} />
           <Text style={[{ color: c.textSecondary, fontSize: 13, marginLeft: 8 }]}>
-            Last updated: July 2026
+            Last updated: October 2026
           </Text>
         </View>
 
         {para('This page sets out the operational ownership, development team, and educational disclaimer for the SkillSphere platform.')}
 
         <Section title="1. Platform Ownership & Educational Disclaimer">
-          {para('SkillSphere is an online e-learning application built and managed collaboratively by Muhammad Danish, Tehzeen Abbas, and Talha Rizwan as an academic group project initiative.')}
+          {para('SkillSphere is an online e-learning application built and managed collaboratively by Muhammad Danish and Talha Rizwan as an academic group project initiative.')}
           {para('For the administrative purpose of deploying online checkout routing and securing live payment gateway clearance, Talha Rizwan operates as the primary account holder, billing administrator, and designated individual sole proprietor for this domain.')}
           {para('All platform intellectual property, code bases, and structural project data remain collectively owned by the development team.')}
         </Section>
 
         <Section title="2. Development Team">
           {bullet('Muhammad Danish — Co-developer & project contributor')}
-          {bullet('Tehzeen Abbas — Co-developer & project contributor')}
-          {bullet('Talha Rizwan — Co-developer, billing administrator & domain account holder')}
+{bullet('Talha Rizwan — Co-developer, billing administrator & domain account holder')}
         </Section>
 
         <Section title="3. Payment Gateway Administration">
@@ -94,7 +92,7 @@ const OwnershipScreen = ({ navigation }) => {
         </Section>
 
         <Section title="5. Liability">
-          {para('All three members of the development team share equal responsibility for the platform\'s content, functionality, and operation, except where administrative roles are specifically assigned for regulatory compliance as noted in Sections 1 and 3 above.')}
+          {para('Both members of the development team share equal responsibility for the platform\'s content, functionality, and operation, except where administrative roles are specifically assigned for regulatory compliance as noted in Sections 1 and 3 above.')}
         </Section>
 
         <Section title="Contact">

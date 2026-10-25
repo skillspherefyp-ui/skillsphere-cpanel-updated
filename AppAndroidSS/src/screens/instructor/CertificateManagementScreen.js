@@ -16,6 +16,7 @@ import {
 import Toast from 'react-native-toast-message';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
+import StatsCard from '../../components/ui/StatsCard';
 import MainLayout from '../../components/ui/MainLayout';
 import AppCard from '../../components/ui/AppCard';
 import AppButton from '../../components/ui/AppButton';
@@ -52,7 +53,7 @@ const CertificateManagementScreen = () => {
   const isTablet = width > 768;
   const isMobile = width <= 480;
 
-  const isSuperInstructor = user?.role === 'admin';
+  const isAdmin = user?.role === 'admin';
 
   // State
   const [loading, setLoading] = useState(true);
@@ -100,11 +101,9 @@ const CertificateManagementScreen = () => {
   const sidebarItems = getSidebarItems(user?.role);
 
   const handleNavigate = (route) => {
-    if (isSuperInstructor) {
+    if (isAdmin) {
       if (route === 'ManageInstructors') {
         navigation.navigate('ManageUsers', { userType: 'instructor' });
-      } else if (route === 'ManageExperts') {
-        navigation.navigate('ManageUsers', { userType: 'expert' });
       } else if (route === 'Categories') {
         navigation.navigate('CategoryManagement');
       } else {
@@ -123,7 +122,7 @@ const CertificateManagementScreen = () => {
         certificateTemplateAPI.getStats(),
         certificateTemplateAPI.getAll(),
         certificateTemplateAPI.getActive(),
-        isSuperInstructor ? courseAPI.getAll() : courseAPI.getAll({ instructorId: user?.id, limit: 200 }),
+        isAdmin ? courseAPI.getAll() : courseAPI.getAll({ instructorId: user?.id, limit: 200 }),
         certificateTemplateAPI.getActivePerCourse(),
         certificateTemplateAPI.getMySignature().catch(() => ({ signatureDataUri: null })),
       ]);
@@ -156,7 +155,7 @@ const CertificateManagementScreen = () => {
     } finally {
       setLoading(false);
     }
-  }, [user?.id, isSuperInstructor]);
+  }, [user?.id, isAdmin]);
 
   useEffect(() => {
     fetchData();
@@ -551,7 +550,7 @@ const CertificateManagementScreen = () => {
         sidebarItems={sidebarItems}
         activeRoute="CertificateManagement"
         onNavigate={handleNavigate}
-        userInfo={{ name: user?.name, role: isSuperInstructor ? 'Admin' : 'Instructor', avatar: user?.avatar }}
+        userInfo={{ name: user?.name, role: isAdmin ? 'Admin' : 'Instructor', avatar: user?.avatar }}
         onLogout={logout}
         onSettings={() => navigation.navigate('Settings')}
       >
@@ -571,7 +570,7 @@ const CertificateManagementScreen = () => {
       sidebarItems={sidebarItems}
       activeRoute="CertificateManagement"
       onNavigate={handleNavigate}
-      userInfo={{ name: user?.name, role: isSuperInstructor ? 'Admin' : 'Instructor', avatar: user?.avatar }}
+      userInfo={{ name: user?.name, role: isAdmin ? 'Admin' : 'Instructor', avatar: user?.avatar }}
       onLogout={logout}
       onSettings={() => navigation.navigate('Settings')}
     >
@@ -610,42 +609,18 @@ const CertificateManagementScreen = () => {
 
         {/* Stats Section */}
         <View style={styles.statsSection}>
-          <AppCard style={[styles.statCard, { borderColor: isDark ? 'rgba(16,185,129,0.18)' : 'rgba(16,185,129,0.15)', borderWidth: 1 }]}>
-            <View style={[styles.statIconCircle, { backgroundColor: isDark ? 'rgba(16,185,129,0.15)' : 'rgba(16,185,129,0.10)' }]}>
-              <Icon name="ribbon" size={26} color={GREEN} />
-            </View>
-            <Text style={[styles.statValue, { color: GREEN }]}>
-              {stats.totalCertificates}
-            </Text>
-            <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>
-              Total Certificates Issued
-            </Text>
-          </AppCard>
-
-          <AppCard style={[styles.statCard, {
-            borderColor: stats.hasActiveTemplate
-              ? (isDark ? 'rgba(16,185,129,0.18)' : 'rgba(16,185,129,0.15)')
-              : (isDark ? 'rgba(245,158,11,0.18)' : 'rgba(245,158,11,0.15)'),
-            borderWidth: 1,
-          }]}>
-            <View style={[styles.statIconCircle, {
-              backgroundColor: stats.hasActiveTemplate
-                ? (isDark ? 'rgba(16,185,129,0.15)' : 'rgba(16,185,129,0.10)')
-                : (isDark ? 'rgba(245,158,11,0.15)' : 'rgba(245,158,11,0.10)'),
-            }]}>
-              <Icon
-                name={stats.hasActiveTemplate ? 'checkmark-circle' : 'warning'}
-                size={26}
-                color={stats.hasActiveTemplate ? GREEN : '#F59E0B'}
-              />
-            </View>
-            <Text style={[styles.statValue, { color: stats.hasActiveTemplate ? GREEN : '#F59E0B' }]}>
-              {stats.hasActiveTemplate ? 'Active' : 'None'}
-            </Text>
-            <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>
-              Template Status
-            </Text>
-          </AppCard>
+          <StatsCard
+            icon="ribbon"
+            color={GREEN}
+            value={stats.totalCertificates}
+            label="Certificates Issued"
+          />
+          <StatsCard
+            icon={stats.hasActiveTemplate ? 'checkmark-circle' : 'warning'}
+            color={stats.hasActiveTemplate ? GREEN : '#F59E0B'}
+            value={stats.hasActiveTemplate ? 'Active' : 'None'}
+            label="Template Status"
+          />
         </View>
 
         {/* ── Your Signature ───────────────────────────────────────────────── */}
@@ -2203,8 +2178,7 @@ const getStyles = (theme, isDark, isLargeScreen, isTablet, isMobile) =>
       justifyContent: 'center',
       alignItems: 'center',
     },
-    cardTitle: {
-      fontSize: 16,
+    cardTitle: {      fontSize: 16,
       fontWeight: '600',
       fontFamily: theme.typography.fontFamily.semiBold,
     },
@@ -2336,8 +2310,7 @@ const getStyles = (theme, isDark, isLargeScreen, isTablet, isMobile) =>
       alignItems: 'center',
       marginBottom: 4,
     },
-    emptyTitle: {
-      fontSize: 16,
+    emptyTitle: {      fontSize: 16,
       fontWeight: '600',
     },
     emptyText: {
@@ -2558,8 +2531,7 @@ const getStyles = (theme, isDark, isLargeScreen, isTablet, isMobile) =>
       justifyContent: 'center',
       alignItems: 'center',
     },
-    modalTitle: {
-      fontSize: 18,
+    modalTitle: {      fontSize: 18,
       fontWeight: '700',
     },
     modalContent: {
@@ -2637,8 +2609,7 @@ const getStyles = (theme, isDark, isLargeScreen, isTablet, isMobile) =>
       alignItems: 'center',
       marginBottom: 16,
     },
-    deleteModalTitle: {
-      fontSize: 20,
+    deleteModalTitle: {      fontSize: 20,
       fontWeight: '700',
       marginBottom: 8,
       textAlign: 'center',

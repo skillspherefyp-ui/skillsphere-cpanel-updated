@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform} from 'react-native';
 
 const ORANGE = '#FF8C42';
 import MainLayout from '../../components/ui/MainLayout';
@@ -254,16 +254,14 @@ const getStyles = (theme, isDark) => StyleSheet.create({
   bannerTextGroup: {
     flex: 1,
   },
-  bannerTitle: {
-    fontSize: 20,
+  bannerTitle: {    fontSize: 20,
     fontWeight: '700',
     marginBottom: 2,
   },
   bannerSubtitle: {
     fontSize: 13,
   },
-  sectionTitle: {
-    fontSize: 20,
+  sectionTitle: {    fontSize: 20,
     fontWeight: 'bold',
     color: theme.colors.textPrimary,
     marginBottom: 16,
@@ -294,8 +292,7 @@ const getStyles = (theme, isDark) => StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
   },
-  summaryValue: {
-    fontSize: 28,
+  summaryValue: {    fontSize: 28,
     fontWeight: '700',
   },
   summaryLabel: {

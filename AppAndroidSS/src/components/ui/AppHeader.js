@@ -11,6 +11,7 @@ import {
   ScrollView,
   Modal,
   PanResponder,
+  TextInput,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
@@ -20,21 +21,11 @@ import UserAvatar from './UserAvatar';
 import { useTheme } from '../../context/ThemeContext';
 import ThemeToggle from '../ThemeToggle';
 import { useAuth } from '../../context/AuthContext';
+import { courseAPI, categoryAPI } from '../../services/apiClient';
 
 // PNG logo (same asset as Sidebar)
 const LogoImage = require('../../assets/images/skillsphere-logo.png');
 
-// ── Date / time helpers ──────────────────────────────────────────────────────
-const formatDate = (date) =>
-  date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-
-const formatTime = (date) =>
-  date.toLocaleTimeString('en-US', {
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: true,
-  });
 
 // ── Component ────────────────────────────────────────────────────────────────
 const AppHeader = ({
@@ -58,9 +49,75 @@ const AppHeader = ({
   const route = useRoute();
   const { width, height: screenHeight } = useWindowDimensions();
 
-  // Live clock
-  const [currentTime, setCurrentTime] = useState(new Date());
-  const pulseAnim = useRef(new Animated.Value(1)).current;
+  // ── Search state ────────────────────────────────────────────────────────
+  const [searchText, setSearchText]         = useState('');
+  const [searchFocused, setSearchFocused]   = useState(false);
+  const [showDropdown, setShowDropdown]     = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const [allCourses, setAllCourses]         = useState([]);
+  const [allCategories, setAllCategories]   = useState([]);
+  const searchRef                           = useRef(null);
+  const dropdownPressedRef                  = useRef(false);
+
+  useEffect(() => {
+    Promise.all([
+      courseAPI.getAll({ limit: 300 }),
+      categoryAPI.getAll(),
+    ]).then(([cr, catR]) => {
+      setAllCourses((cr.courses || []).filter(c => c.status === 'published'));
+      setAllCategories(catR.categories || []);
+    }).catch(() => {});
+  }, []);
+
+  const q = searchText.trim().toLowerCase();
+  const filteredCourses    = q ? allCourses.filter(c =>
+    c.name?.toLowerCase().includes(q) || c.description?.toLowerCase().includes(q)
+  ).slice(0, 5) : [];
+  const filteredCategories = q ? allCategories.filter(c => c.name?.toLowerCase().includes(q)).slice(0, 3) : [];
+  const filteredNavItems   = q ? navItems.filter(n => n.label?.toLowerCase().includes(q)) : [];
+  const hasResults = filteredCourses.length > 0 || filteredCategories.length > 0 || filteredNavItems.length > 0;
+
+  const handleSearch = (query) => {
+    const trimmed = (query || '').trim();
+    setSearchText('');
+    setSearchFocused(false);
+    setShowDropdown(false);
+    setMobileSearchOpen(false);
+    const role = user?.role;
+    if (role === 'student') {
+      navigation.navigate('BrowseCourses', trimmed ? { searchQuery: trimmed } : {});
+    } else if (role === 'expert') {
+      navigation.navigate('ExploreCourses', trimmed ? { searchQuery: trimmed } : {});
+    } else {
+      navigation.navigate('Courses', trimmed ? { searchQuery: trimmed } : {});
+    }
+  };
+
+  const handleSelectCourse = (course) => {
+    setSearchText(''); setShowDropdown(false); setMobileSearchOpen(false);
+    navigation.navigate('CourseDetail', { courseId: course.id });
+  };
+
+  const handleSelectCategory = (cat) => {
+    setSearchText(''); setShowDropdown(false); setMobileSearchOpen(false);
+    const role = user?.role;
+    if (role === 'student') {
+      navigation.navigate('BrowseCourses', { categoryId: cat.id, categoryName: cat.name });
+    } else {
+      navigation.navigate('Courses', { categoryId: cat.id });
+    }
+  };
+
+  const handleSelectNavItem = (item) => {
+    setSearchText(''); setShowDropdown(false); setMobileSearchOpen(false);
+    onNavigate?.(item.route);
+  };
+
+  const closeMobileSearch = () => {
+    setMobileSearchOpen(false);
+    setSearchText('');
+    setShowDropdown(false);
+  };
 
   // Mobile dropdown state
   const [menuOpen, setMenuOpen] = useState(false);
@@ -96,23 +153,6 @@ const AppHeader = ({
       },
     })
   ).current;
-
-  useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  // Pulsing live dot
-  useEffect(() => {
-    const pulse = Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseAnim, { toValue: 0.4, duration: 800, useNativeDriver: true }),
-        Animated.timing(pulseAnim, { toValue: 1.0, duration: 800, useNativeDriver: true }),
-      ])
-    );
-    pulse.start();
-    return () => pulse.stop();
-  }, []);
 
   // Back-button logic — hide on main/auth screens
   const isMainScreen =
@@ -308,8 +348,192 @@ const AppHeader = ({
     </Modal>
   );
 
+  // ── Shared search results dropdown ──────────────────────────────────────
+  const SearchDropdownContent = () => (
+    <View style={[styles.searchDropdown, {
+      backgroundColor: isDark ? '#1A1A2E' : '#FFFFFF',
+      borderColor: isDark ? 'rgba(255,140,66,0.25)' : 'rgba(255,140,66,0.3)',
+      ...(isWeb ? { boxShadow: '0 8px 32px rgba(0,0,0,0.35)' } : {
+        shadowColor: '#000', shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.3, shadowRadius: 20, elevation: 20,
+      }),
+    }]}>
+      <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} style={{ maxHeight: 340 }}>
+        {filteredCourses.length > 0 && (
+          <>
+            <View style={styles.sdSection}>
+              <Icon name="library-outline" size={12} color="#FF8C42" />
+              <Text style={styles.sdSectionLabel}>Courses</Text>
+            </View>
+            {filteredCourses.map(course => (
+              <TouchableOpacity
+                key={course.id}
+                style={[styles.sdItem, { borderBottomColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(26,26,46,0.07)' }]}
+                onPressIn={() => { dropdownPressedRef.current = true; }}
+                onPress={() => handleSelectCourse(course)}
+                activeOpacity={0.75}
+              >
+                <Icon name="book-outline" size={14} color={isDark ? 'rgba(255,255,255,0.38)' : 'rgba(26,26,46,0.35)'} />
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.sdItemText, { color: isDark ? '#FFFFFF' : '#1A1A2E' }]} numberOfLines={1}>{course.name}</Text>
+                  {course.category?.name && (
+                    <Text style={[styles.sdItemMeta, { color: isDark ? 'rgba(255,255,255,0.4)' : 'rgba(26,26,46,0.45)' }]} numberOfLines={1}>
+                      {course.category.name}{course.level ? ` · ${course.level}` : ''}
+                    </Text>
+                  )}
+                </View>
+                <Icon name="arrow-forward" size={12} color={isDark ? 'rgba(255,255,255,0.2)' : 'rgba(26,26,46,0.2)'} />
+              </TouchableOpacity>
+            ))}
+          </>
+        )}
+        {filteredCategories.length > 0 && (
+          <>
+            <View style={[styles.sdSection, filteredCourses.length > 0 && { marginTop: 4 }]}>
+              <Icon name="grid-outline" size={12} color="#FF8C42" />
+              <Text style={styles.sdSectionLabel}>Categories</Text>
+            </View>
+            {filteredCategories.map(cat => (
+              <TouchableOpacity
+                key={cat.id}
+                style={[styles.sdItem, { borderBottomColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(26,26,46,0.07)' }]}
+                onPressIn={() => { dropdownPressedRef.current = true; }}
+                onPress={() => handleSelectCategory(cat)}
+                activeOpacity={0.75}
+              >
+                <Icon name="folder-outline" size={14} color={isDark ? 'rgba(255,255,255,0.38)' : 'rgba(26,26,46,0.35)'} />
+                <Text style={[styles.sdItemText, { color: isDark ? '#FFFFFF' : '#1A1A2E', flex: 1 }]} numberOfLines={1}>{cat.name}</Text>
+                <Icon name="arrow-forward" size={12} color={isDark ? 'rgba(255,255,255,0.2)' : 'rgba(26,26,46,0.2)'} />
+              </TouchableOpacity>
+            ))}
+          </>
+        )}
+        {filteredNavItems.length > 0 && (
+          <>
+            <View style={[styles.sdSection, (filteredCourses.length > 0 || filteredCategories.length > 0) && { marginTop: 4 }]}>
+              <Icon name="albums-outline" size={12} color="#FF8C42" />
+              <Text style={styles.sdSectionLabel}>Pages</Text>
+            </View>
+            {filteredNavItems.map(item => (
+              <TouchableOpacity
+                key={item.route}
+                style={[styles.sdItem, { borderBottomColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(26,26,46,0.07)' }]}
+                onPressIn={() => { dropdownPressedRef.current = true; }}
+                onPress={() => handleSelectNavItem(item)}
+                activeOpacity={0.75}
+              >
+                <Icon name={item.icon} size={14} color={isDark ? 'rgba(255,255,255,0.38)' : 'rgba(26,26,46,0.35)'} />
+                <Text style={[styles.sdItemText, { color: isDark ? '#FFFFFF' : '#1A1A2E', flex: 1 }]} numberOfLines={1}>{item.label}</Text>
+                <Icon name="arrow-forward" size={12} color={isDark ? 'rgba(255,255,255,0.2)' : 'rgba(26,26,46,0.2)'} />
+              </TouchableOpacity>
+            ))}
+          </>
+        )}
+        {q.length > 0 && (
+          <TouchableOpacity
+            style={[styles.sdSeeAll, { borderTopColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(26,26,46,0.08)' }]}
+            onPressIn={() => { dropdownPressedRef.current = true; }}
+            onPress={() => handleSearch(searchText)}
+            activeOpacity={0.8}
+          >
+            <Icon name="search" size={13} color="#FF8C42" />
+            <Text style={styles.sdSeeAllText}>See all results for "{q}"</Text>
+          </TouchableOpacity>
+        )}
+      </ScrollView>
+    </View>
+  );
+
+  // ── Mobile full-screen search overlay ───────────────────────────────────
+  const MobileSearchOverlay = () => (
+    <Modal visible={mobileSearchOpen} transparent animationType="none" onRequestClose={closeMobileSearch}>
+      <View style={styles.modalBackdrop}>
+        <TouchableOpacity style={StyleSheet.absoluteFillObject} onPress={closeMobileSearch} activeOpacity={1} />
+        <View style={[styles.mobileSearchOverlay, { top: totalHeaderOffset + 8 }]}>
+          <View style={[styles.mobileSearchBar, { backgroundColor: glassBg }]}>
+            <Icon name="search-outline" size={16} color="rgba(255,255,255,0.5)" />
+            <TextInput
+              ref={searchRef}
+              style={styles.mobileSearchInput}
+              placeholder="Search courses, pages..."
+              placeholderTextColor="rgba(255,255,255,0.35)"
+              value={searchText}
+              onChangeText={v => { setSearchText(v); setShowDropdown(true); }}
+              onFocus={() => setShowDropdown(true)}
+              onSubmitEditing={() => handleSearch(searchText)}
+              returnKeyType="search"
+              autoFocus
+            />
+            <TouchableOpacity onPress={closeMobileSearch} activeOpacity={0.7}>
+              <Icon name="close" size={20} color="#FFFFFF" />
+            </TouchableOpacity>
+          </View>
+          {showDropdown && hasResults && (
+            <View style={{ marginTop: 6 }}>
+              <SearchDropdownContent />
+            </View>
+          )}
+        </View>
+      </View>
+    </Modal>
+  );
+
+  // ── Native tablet/desktop search dropdown (Modal to escape overflow:hidden) ──
+  const DesktopDropdownModal = () => (
+    <Modal visible={showDropdown && hasResults} transparent animationType="none" onRequestClose={() => setShowDropdown(false)}>
+      <TouchableOpacity
+        style={StyleSheet.absoluteFillObject}
+        onPress={() => { setShowDropdown(false); setSearchFocused(false); }}
+        activeOpacity={1}
+      />
+      <View style={[
+        styles.desktopDropdown,
+        { top: totalHeaderOffset + 8 },
+        isMobile && { left: 12, right: 12, width: undefined },
+      ]}>
+        <SearchDropdownContent />
+      </View>
+    </Modal>
+  );
+
   // ── Header inner content ────────────────────────────────────────────────
-  const HeaderContent = () => (
+  const HeaderContent = () => {
+    /* Mobile inline-search mode — replace entire content with search bar */
+    if (isMobile && mobileSearchOpen) {
+      return (
+        <View style={styles.contentWrapper}>
+          <View style={styles.content}>
+            <Image source={LogoImage} style={styles.logoImg} resizeMode="cover" />
+            <View style={[styles.searchBarWrapper, styles.searchBarFocused, { flex: 1 }]}>
+              <Icon name="search-outline" size={14} color="rgba(255,140,66,0.8)" />
+              <TextInput
+                ref={searchRef}
+                style={styles.searchInput}
+                placeholder="Search courses, pages..."
+                placeholderTextColor="rgba(255,255,255,0.3)"
+                value={searchText}
+                onChangeText={v => { setSearchText(v); setShowDropdown(true); }}
+                onFocus={() => setShowDropdown(true)}
+                onSubmitEditing={() => handleSearch(searchText)}
+                returnKeyType="search"
+                autoFocus
+                {...(isWeb ? { outlineWidth: 0 } : {})}
+              />
+              {searchText.length > 0 && (
+                <TouchableOpacity onPress={() => { setSearchText(''); setShowDropdown(false); }} activeOpacity={0.7}>
+                  <Icon name="close-circle" size={14} color="rgba(255,255,255,0.4)" />
+                </TouchableOpacity>
+              )}
+            </View>
+            <TouchableOpacity onPress={closeMobileSearch} style={styles.searchCloseBtn} activeOpacity={0.7}>
+              <Icon name="close" size={19} color="#FFFFFF" />
+            </TouchableOpacity>
+          </View>
+        </View>
+      );
+    }
+
+    return (
     <View style={styles.contentWrapper}>
       <View style={styles.content}>
 
@@ -328,7 +552,7 @@ const AppHeader = ({
           {!minimal && (
             <View style={styles.logoArea}>
               <Image source={LogoImage} style={styles.logoImg} resizeMode="cover" />
-              {isDesktop && (
+              {!leftComponent && (
                 <Text style={styles.logoText}>
                   SKILL<Text style={{ color: '#FF8C42' }}>SPHERE</Text>
                 </Text>
@@ -384,19 +608,33 @@ const AppHeader = ({
             </>
           ) : (
             <>
-              {/* Date/time pill */}
-              {showDateTime && (
-                <View style={styles.dateTimeWrapper}>
-                  <View style={styles.dateContainer}>
-                    <Icon name="calendar" size={isMobile ? 16 : 14} color="#FFFFFF" />
-                    <Text style={styles.dateText}>{formatDate(currentTime)}</Text>
-                  </View>
-                  <View style={styles.dateTimeDivider} />
-                  <View style={styles.timeContainer}>
-                    <Animated.View style={[styles.liveDot, { opacity: pulseAnim }]} />
-                    <Icon name="time" size={isMobile ? 16 : 14} color="#FFFFFF" />
-                    <Text style={styles.timeText}>{formatTime(currentTime)}</Text>
-                  </View>
+              {/* Search bar — desktop/tablet */}
+              {showDateTime && !isMobile && (
+                <View style={[styles.searchBarWrapper, searchFocused && styles.searchBarFocused]}>
+                  <Icon name="search-outline" size={14} color={searchFocused ? 'rgba(255,140,66,0.8)' : 'rgba(255,255,255,0.45)'} />
+                  <TextInput
+                    ref={searchRef}
+                    style={styles.searchInput}
+                    placeholder="Search courses, pages..."
+                    placeholderTextColor="rgba(255,255,255,0.3)"
+                    value={searchText}
+                    onChangeText={v => { setSearchText(v); setShowDropdown(true); }}
+                    onFocus={() => { setSearchFocused(true); setShowDropdown(true); }}
+                    onBlur={() => {
+                      setTimeout(() => {
+                        if (!dropdownPressedRef.current) { setShowDropdown(false); }
+                        dropdownPressedRef.current = false;
+                        setSearchFocused(false);
+                      }, 200);
+                    }}
+                    onSubmitEditing={() => handleSearch(searchText)}
+                    returnKeyType="search"
+                  />
+                  {searchText.length > 0 && (
+                    <TouchableOpacity onPress={() => { setSearchText(''); setShowDropdown(false); }} activeOpacity={0.7}>
+                      <Icon name="close-circle" size={14} color="rgba(255,255,255,0.4)" />
+                    </TouchableOpacity>
+                  )}
                 </View>
               )}
 
@@ -440,6 +678,17 @@ const AppHeader = ({
                 </>
               )}
 
+              {/* Search icon — mobile: opens expand overlay */}
+              {showDateTime && isMobile && (
+                <TouchableOpacity
+                  style={styles.searchIconBtn}
+                  onPress={() => { setMobileSearchOpen(true); setTimeout(() => searchRef.current?.focus(), 80); }}
+                  activeOpacity={0.7}
+                >
+                  <Icon name="search-outline" size={18} color="#FFFFFF" />
+                </TouchableOpacity>
+              )}
+
               {/* Mobile: right actions + hamburger */}
               {isMobile && rightActions}
               {isMobile && (
@@ -468,7 +717,8 @@ const AppHeader = ({
 
       </View>
     </View>
-  );
+    );
+  };
 
   // ── Shared glass color (header + dropdown must match) ───────────────────
   const glassBg = isDark ? 'rgba(22,22,46,0.82)' : 'rgba(26,26,50,0.90)';
@@ -496,6 +746,21 @@ const AppHeader = ({
               {HeaderContent()}
             </View>
           </View>
+          {/* Dropdown — outside overflow:hidden container, works for both desktop and mobile inline search */}
+          {showDropdown && hasResults && (
+            <View style={{
+              position: 'absolute',
+              left: isMobile ? 12 : undefined,
+              right: 14,
+              top: 10 + 2 + headerHeight + 6,
+              width: isMobile ? undefined : 310,
+              zIndex: 1001,
+              borderRadius: 16,
+              overflow: 'hidden',
+            }}>
+              <SearchDropdownContent />
+            </View>
+          )}
         </View>
         {isMobile && MobileDropdown()}
       </>
@@ -523,6 +788,7 @@ const AppHeader = ({
         </LinearGradient>
       </View>
       {isMobile && MobileDropdown()}
+      {<DesktopDropdownModal />}
     </>
   );
 };
@@ -577,7 +843,8 @@ const getStyles = (theme, isDark, isWeb, isDesktop, isTablet, headerHeight) =>
     },
     logoText: {
       color: '#FFFFFF',
-      fontWeight: '800',
+      fontFamily: Platform.OS === 'web' ? 'Fredoka' : 'Fredoka-Bold',
+      fontWeight: '700',
       fontSize: 16,
       letterSpacing: 1.2,
     },
@@ -646,65 +913,49 @@ const getStyles = (theme, isDark, isWeb, isDesktop, isTablet, headerHeight) =>
       gap: 10,
       ...(isTablet ? { flexShrink: 0 } : { flex: 1, justifyContent: 'flex-end' }),
     },
-    dateTimeWrapper: {
+    searchBarWrapper: {
       flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'space-between',
-      backgroundColor: 'rgba(255,255,255,0.1)',
-      paddingHorizontal: isTablet ? 20 : 14,
-      paddingVertical: 8,
+      gap: 8,
+      backgroundColor: 'rgba(255,255,255,0.08)',
+      borderWidth: 1,
+      borderColor: 'rgba(255,255,255,0.12)',
       borderRadius: 22,
+      paddingHorizontal: 12,
+      paddingVertical: isDesktop ? 7 : 6,
+      width: isDesktop ? 220 : 175,
+    },
+    searchBarFocused: {
+      borderColor: 'rgba(255,140,66,0.55)',
+      backgroundColor: 'rgba(255,255,255,0.12)',
+    },
+    searchInput: {
+      flex: 1,
+      color: '#FFFFFF',
+      fontSize: 13,
+      fontWeight: '500',
+      minWidth: 0,
+      paddingVertical: 0,
+      ...(isWeb ? { outlineWidth: 0 } : {}),
+    },
+    searchIconBtn: {
+      width: 34,
+      height: 34,
+      borderRadius: 17,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: 'rgba(255,255,255,0.1)',
       borderWidth: 1,
       borderColor: 'rgba(255,255,255,0.15)',
-      ...(isTablet ? { minWidth: isDesktop ? 280 : 240 } : { flex: 1, marginHorizontal: 18, alignSelf: 'center' }),
-      gap: 8,
-      ...(isWeb && {
-        backdropFilter: 'blur(10px)',
-        WebkitBackdropFilter: 'blur(10px)',
-      }),
     },
-    dateContainer: {
-      flexDirection: 'row',
+    searchCloseBtn: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      justifyContent: 'center',
       alignItems: 'center',
-      gap: 6,
-      flex: 1,
-    },
-    dateText: {
-      color: '#FFFFFF',
-      fontSize: isTablet ? 10 : 14,
-      fontWeight: '600',
-      letterSpacing: 0.3,
-    },
-    dateTimeDivider: {
-      width: 1,
-      height: 16,
-      backgroundColor: 'rgba(255,255,255,0.3)',
-      marginHorizontal: 4,
-    },
-    timeContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 6,
-      flex: 1,
-      justifyContent: 'flex-end',
-    },
-    liveDot: {
-      width: 7,
-      height: 7,
-      borderRadius: 4,
-      backgroundColor: '#4ADE80',
-      shadowColor: '#4ADE80',
-      shadowOffset: { width: 0, height: 0 },
-      shadowOpacity: 0.8,
-      shadowRadius: 4,
-      elevation: 3,
-    },
-    timeText: {
-      color: '#FFFFFF',
-      fontSize: isTablet ? 10 : 14,
-      fontWeight: '700',
-      letterSpacing: 0.5,
-      fontVariant: ['tabular-nums'],
+      backgroundColor: 'rgba(255,255,255,0.1)',
+      flexShrink: 0,
     },
     userGreeting: {
       alignItems: 'flex-end',
@@ -834,6 +1085,7 @@ const getStyles = (theme, isDark, isWeb, isDesktop, isTablet, headerHeight) =>
       marginHorizontal: 12,
     },
 
+
     // Nav item row
     dropdownItem: {
       flexDirection: 'row',
@@ -875,6 +1127,95 @@ const getStyles = (theme, isDark, isWeb, isDesktop, isTablet, headerHeight) =>
       borderRadius: 4,
       backgroundColor: '#FF8C42',
     },
+    // ── Search dropdown (shared) ──
+    searchDropdown: {
+      borderRadius: 16,
+      borderWidth: 1,
+      overflow: 'hidden',
+    },
+    sdSection: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      paddingHorizontal: 14,
+      paddingTop: 10,
+      paddingBottom: 4,
+    },
+    sdSectionLabel: {
+      fontSize: 11,
+      fontWeight: '700',
+      color: '#FF8C42',
+      letterSpacing: 0.5,
+      textTransform: 'uppercase',
+    },
+    sdItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+      borderBottomWidth: 1,
+    },
+    sdItemText: {
+      fontSize: 13,
+      fontWeight: '600',
+    },
+    sdItemMeta: {
+      fontSize: 11,
+      fontWeight: '400',
+      marginTop: 1,
+    },
+    sdSeeAll: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      paddingHorizontal: 14,
+      paddingVertical: 12,
+      borderTopWidth: 1,
+    },
+    sdSeeAllText: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: '#FF8C42',
+      flex: 1,
+    },
+
+    // ── Desktop dropdown modal (native) ──
+    desktopDropdown: {
+      position: 'absolute',
+      right: 26,
+      width: 310,
+      borderRadius: 16,
+      overflow: 'hidden',
+      zIndex: 1001,
+    },
+
+    // ── Mobile search overlay ──
+    mobileSearchOverlay: {
+      position: 'absolute',
+      left: 12,
+      right: 12,
+      zIndex: 1001,
+    },
+    mobileSearchBar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      borderRadius: 18,
+      borderWidth: 1,
+      borderColor: 'rgba(255,140,66,0.3)',
+    },
+    mobileSearchInput: {
+      flex: 1,
+      color: '#FFFFFF',
+      fontSize: 15,
+      fontWeight: '500',
+      paddingVertical: 0,
+      ...(Platform.OS === 'web' ? { outlineWidth: 0 } : {}),
+    },
+
     scrollTrack: {
       position: 'absolute',
       right: 4,

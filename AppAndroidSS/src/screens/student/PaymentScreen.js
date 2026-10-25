@@ -208,7 +208,7 @@ const PaymentScreen = () => {
         }]}>
           <TouchableOpacity
             style={[styles.backBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(26,26,46,0.06)' }]}
-            onPress={() => navigation.navigate('CertificatePreview', { courseId, courseName })}
+            onPress={() => navigation.navigate('CourseFeedback', { courseId, courseName })}
           >
             <Icon name="arrow-back" size={20} color={theme.colors.textPrimary} />
           </TouchableOpacity>

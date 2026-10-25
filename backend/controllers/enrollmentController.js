@@ -169,10 +169,10 @@ exports.checkEnrollment = async (req, res) => {
 
 exports.updateEnrollmentProgress = async (req, res) => {
   try {
-    const { courseId, progress } = req.body;
+    const { courseId } = req.body;
 
-    if (!courseId || typeof progress !== 'number') {
-      return res.status(400).json({ error: 'Course ID and numeric progress are required' });
+    if (!courseId) {
+      return res.status(400).json({ error: 'Course ID is required' });
     }
 
     const enrollment = await Enrollment.findOne({
@@ -186,13 +186,20 @@ exports.updateEnrollmentProgress = async (req, res) => {
       return res.status(404).json({ error: 'Enrollment not found' });
     }
 
-    enrollment.progressPercentage = Math.max(0, Math.min(100, progress));
-    enrollment.status = enrollment.progressPercentage >= 100
+    // Compute progress server-side — ignore any client-supplied progress value
+    const totalTopics = await Topic.count({ where: { courseId } });
+    const completedTopics = await Progress.count({
+      where: { userId: req.user.id, courseId, completed: true }
+    });
+    const progress = totalTopics > 0 ? Math.round((completedTopics / totalTopics) * 100) : 0;
+
+    enrollment.progressPercentage = progress;
+    enrollment.status = progress >= 100
       ? 'completed'
-      : enrollment.progressPercentage > 0
+      : progress > 0
         ? 'in-progress'
         : 'enrolled';
-    enrollment.completedAt = enrollment.progressPercentage >= 100 ? new Date() : null;
+    enrollment.completedAt = progress >= 100 ? new Date() : null;
     await enrollment.save();
 
     res.json({ success: true, enrollment });

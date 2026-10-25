@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Platform} from 'react-native';
 
 const MarkdownText = ({ children, style, textColor = '#000' }) => {
   if (!children) return null;
@@ -260,14 +260,12 @@ const MarkdownText = ({ children, style, textColor = '#000' }) => {
 };
 
 const styles = StyleSheet.create({
-  h1: {
-    fontSize: 20,
+  h1: {    fontSize: 20,
     fontWeight: '700',
     marginTop: 12,
     marginBottom: 8,
   },
-  h2: {
-    fontSize: 18,
+  h2: {    fontSize: 18,
     fontWeight: '700',
     marginTop: 10,
     marginBottom: 6,

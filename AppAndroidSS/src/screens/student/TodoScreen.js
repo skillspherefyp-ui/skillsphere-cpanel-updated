@@ -557,8 +557,7 @@ const getStyles = (theme, isDark, isLargeScreen, isTablet, isMobile) =>
     bannerTextGroup: {
       flex: 1,
     },
-    pageTitle: {
-      fontSize: isMobile ? 18 : 22,
+    pageTitle: {      fontSize: isMobile ? 18 : 22,
       fontWeight: '700',
       marginBottom: 2,
     },
@@ -668,8 +667,7 @@ const getStyles = (theme, isDark, isLargeScreen, isTablet, isMobile) =>
       flex: 1,
       gap: 6,
     },
-    cardTitle: {
-      fontSize: 15,
+    cardTitle: {      fontSize: 15,
       fontWeight: '700',
       lineHeight: 20,
     },

@@ -565,8 +565,9 @@ const LearningScreen = () => {
   };
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const { courseId, topicId } = route.params;
-  const { courses, checkEnrollment, fetchCourses, enrollments, fetchMyEnrollments, updateTopicProgress } = useData();
-  const course = courses.find(c => c.id === courseId);
+  const { courses, checkEnrollment, fetchCourses, enrollments, fetchMyEnrollments, updateTopicProgress, getCourseById } = useData();
+  const [localCourse, setLocalCourse] = useState(null);
+  const course = courses.find(c => c.id === courseId) || localCourse;
   const topic = course?.topics?.find(t => t.id === topicId);
 
   const isManualMode = course?.creationMode === 'manual';
@@ -625,6 +626,15 @@ const LearningScreen = () => {
   useEffect(() => {
     checkEnrollmentStatus();
     fetchCourses(); // refresh so topic completion state is current
+  }, [courseId]);
+
+  // If this course is not in DataContext (e.g. beyond page-1 limit), fetch it individually.
+  useEffect(() => {
+    if (!courses.find(c => c.id === courseId) && courseId) {
+      getCourseById(courseId).then(res => {
+        if (res.success && res.course) setLocalCourse(res.course);
+      });
+    }
   }, [courseId]);
 
   // Auto-navigate to first non-completed topic — skip if user is revisiting a completed one
@@ -2443,8 +2453,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  videoFallbackTitle: {
-    color: '#fff',
+  videoFallbackTitle: {    color: '#fff',
     fontSize: 20,
     fontWeight: '700',
     textAlign: 'center',
@@ -2639,8 +2648,7 @@ const chatStyles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 4,
   },
-  emptyTitle: {
-    fontSize: 14,
+  emptyTitle: {    fontSize: 14,
     fontWeight: '600',
   },
   emptySub: {

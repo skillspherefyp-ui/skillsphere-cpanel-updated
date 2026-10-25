@@ -3,7 +3,6 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { useAuth } from '../context/AuthContext';
 import AuthNavigator from './AuthNavigator';
 import InstructorNavigator from './InstructorNavigator';
-import ExpertNavigator from './ExpertNavigator';
 import StudentNavigator from './StudentNavigator';
 import AdminNavigator from './AdminNavigator';
 import LoadingScreen from '../screens/LoadingScreen';
@@ -42,8 +41,6 @@ const AppNavigator = () => {
     console.log('✅ Routing to Admin Dashboard');
   } else if (role === 'instructor') {
     console.log('✅ Routing to Instructor Navigator');
-  } else if (role === 'expert') {
-    console.log('✅ Routing to Expert Navigator');
   } else if (user && role) {
     console.log('✅ Routing to Student Navigator (default for authenticated user)');
   } else if (!user) {
@@ -60,8 +57,6 @@ const AppNavigator = () => {
         <Stack.Screen name="Admin" component={AdminNavigator} />
       ) : role === 'instructor' ? (
         <Stack.Screen name="Instructor" component={InstructorNavigator} />
-      ) : role === 'expert' ? (
-        <Stack.Screen name="Expert" component={ExpertNavigator} />
       ) : (
         <Stack.Screen name="Student" component={StudentNavigator} />
       )}

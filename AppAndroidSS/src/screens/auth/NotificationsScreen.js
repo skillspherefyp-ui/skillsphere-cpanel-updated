@@ -276,8 +276,7 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: 0,
   },
-  bannerTitle: {
-    fontSize: 20,
+  bannerTitle: {    fontSize: 20,
     fontWeight: '800',
   },
   bannerSubtitle: {

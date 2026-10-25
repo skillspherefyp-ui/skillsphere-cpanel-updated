@@ -1,20 +1,19 @@
 const jwt = require('jsonwebtoken');
 const { User, Notification } = require('../models');
-const { generateOTP, getOTPExpiry, verifyOTP } = require('../utils/otpUtils');
+const { generateOTP, hashOTP, getOTPExpiry, verifyOTP } = require('../utils/otpUtils');
 const { sendOTPEmail, sendWelcomeEmail } = require('../services/emailService');
 
-// Firebase Instructor - Optional for Google OAuth
-let instructor = null;
+// Firebase Admin SDK — Google OAuth token verification
+let firebaseAdmin = null;
 let firebaseConfigured = false;
 
 try {
-  instructor = require('firebase-instructor');
+  firebaseAdmin = require('firebase-admin');
 
-  // Only initialize if all required env vars are present
   if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY) {
-    if (!instructor.apps.length) {
-      instructor.initializeApp({
-        credential: instructor.credential.cert({
+    if (!firebaseAdmin.apps.length) {
+      firebaseAdmin.initializeApp({
+        credential: firebaseAdmin.credential.cert({
           projectId: process.env.FIREBASE_PROJECT_ID,
           clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
           privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n')
@@ -22,18 +21,18 @@ try {
       });
     }
     firebaseConfigured = true;
-    console.log('✅ Firebase Instructor SDK initialized');
+    console.log('Firebase Admin SDK initialized');
   } else {
-    console.log('⚠️ Firebase not configured - using direct Google OAuth token verification');
+    console.warn('Firebase env vars missing — Google OAuth disabled');
   }
 } catch (error) {
-  console.log('⚠️ Firebase Instructor SDK not available - using direct Google OAuth token verification');
-  instructor = null;
+  console.error('Firebase Admin SDK init error:', error.message);
+  firebaseAdmin = null;
 }
 
 const generateToken = (user) => {
   return jwt.sign(
-    { id: user.id, email: user.email, role: user.role },
+    { id: user.id, email: user.email, role: user.role, tv: user.tokenVersion || 0 },
     process.env.JWT_SECRET,
     { expiresIn: '7d' }
   );
@@ -43,11 +42,7 @@ exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    console.log('🔐 Login attempt received');
-    console.log('📧 Email:', email);
-    console.log('🔑 Password length:', password?.length);
-    console.log('🔑 Password:', password);
-    console.log('📦 Full request body:', JSON.stringify(req.body, null, 2));
+    console.log('Login attempt for:', email);
 
     if (!email || !password) {
       console.log('❌ Missing email or password');
@@ -58,32 +53,40 @@ exports.login = async (req, res) => {
 
     if (!user) {
       console.log('❌ User not found for email:', email);
-      return res.status(401).json({ error: 'Invalid credentials' });
+      return res.status(401).json({ error: 'Invalid email or password' });
     }
 
-    console.log('👤 User found:', user.email, 'role:', user.role);
-    console.log('🔑 User permissions:', JSON.stringify(user.permissions));
 
     if (!user.isActive) {
       console.log('❌ User account is inactive');
       return res.status(401).json({ error: 'Account is inactive' });
     }
 
-    console.log('🔐 Comparing password...');
+    if (user.lockedUntil && user.lockedUntil > new Date()) {
+      return res.status(429).json({ error: 'Account temporarily locked. Try again later.' });
+    }
+
+    if (!user.password) {
+      return res.status(400).json({ error: 'This account was created with Google. Please use the "Continue with Google" button to sign in.' });
+    }
+
     const isPasswordValid = await user.comparePassword(password);
-    console.log('🔐 Password comparison result:', isPasswordValid);
 
     if (!isPasswordValid) {
       console.log('❌ Password is invalid');
-      return res.status(401).json({ error: 'Invalid credentials' });
+      await user.increment('failedLoginAttempts');
+      await user.reload();
+      if (user.failedLoginAttempts >= 5) {
+        await user.update({ lockedUntil: new Date(Date.now() + 15 * 60 * 1000) });
+      }
+      return res.status(401).json({ error: 'Invalid email or password' });
     }
 
     const token = generateToken(user);
 
-    // Record last login time
+    // Record last login time and reset lockout
     const now = new Date();
-    user.lastLogin = now;
-    await user.save({ fields: ['lastLogin'] });
+    await user.update({ lastLogin: now, failedLoginAttempts: 0, lockedUntil: null });
 
     const response = {
       success: true,
@@ -100,8 +103,7 @@ exports.login = async (req, res) => {
       }
     };
 
-    console.log('✅ Login successful for:', user.email);
-    console.log('📤 Sending response:', JSON.stringify(response, null, 2));
+    console.log(`Login success: ${user.email} (${user.role})`);
 
     res.json(response);
   } catch (error) {
@@ -123,9 +125,8 @@ exports.register = async (req, res) => {
       return res.status(400).json({ error: 'Email already exists' });
     }
 
-    // Allow all valid roles: student, expert, instructor, admin
-    const validRoles = ['student', 'expert', 'instructor', 'admin'];
-    const roleToUse = validRoles.includes(role) ? role : 'student';
+    // Public registration is student-only. Admin/instructor accounts are created via seed or protected routes.
+    const roleToUse = 'student';
 
     const user = await User.create({
       name,
@@ -234,6 +235,7 @@ exports.changePassword = async (req, res) => {
     }
 
     await user.update({ password: newPassword });
+    await user.increment('tokenVersion');
 
     res.json({ success: true, message: 'Password changed successfully' });
   } catch (error) {
@@ -264,7 +266,7 @@ exports.sendOTP = async (req, res) => {
     if (existingUser) {
       // Update existing user with new OTP
       await existingUser.update({
-        otpCode: otp,
+        otpCode: hashOTP(otp),
         otpExpiry: otpExpiry
       });
     } else {
@@ -272,7 +274,7 @@ exports.sendOTP = async (req, res) => {
       await User.create({
         email,
         name: name || 'User',
-        otpCode: otp,
+        otpCode: hashOTP(otp),
         otpExpiry: otpExpiry,
         emailVerified: false,
         authProvider: 'local'
@@ -284,7 +286,7 @@ exports.sendOTP = async (req, res) => {
       await sendOTPEmail(email, otp, name || 'User');
       console.log('📧 OTP sent to:', email);
     } catch (emailError) {
-      console.log('⚠️ Email sending failed, OTP for development:', otp);
+      if (process.env.NODE_ENV !== 'production') { console.log('⚠️ Email sending failed, OTP for development:', otp); }
       console.log('⚠️ Email error:', emailError.message);
       // Continue even if email fails in development
     }
@@ -364,7 +366,7 @@ exports.resendOTP = async (req, res) => {
     const otpExpiry = getOTPExpiry(10);
 
     await user.update({
-      otpCode: otp,
+      otpCode: hashOTP(otp),
       otpExpiry: otpExpiry
     });
 
@@ -373,7 +375,7 @@ exports.resendOTP = async (req, res) => {
       await sendOTPEmail(email, otp, user.name);
       console.log('📧 OTP resent to:', email);
     } catch (emailError) {
-      console.log('⚠️ Email resend failed, OTP for development:', otp);
+      if (process.env.NODE_ENV !== 'production') { console.log('⚠️ Email resend failed, OTP for development:', otp); }
       console.log('⚠️ Email error:', emailError.message);
       // Continue even if email fails - OTP is still saved in database
     }
@@ -484,7 +486,7 @@ exports.sendLoginOTP = async (req, res) => {
     const otpExpiry = getOTPExpiry(10);
 
     await user.update({
-      otpCode: otp,
+      otpCode: hashOTP(otp),
       otpExpiry: otpExpiry
     });
 
@@ -499,7 +501,7 @@ exports.sendLoginOTP = async (req, res) => {
         type: 'info',
       });
     } catch (emailError) {
-      console.log('⚠️ Email sending failed, Login OTP for development:', otp);
+      if (process.env.NODE_ENV !== 'production') { console.log('⚠️ Email sending failed, Login OTP for development:', otp); }
       console.log('⚠️ Email error:', emailError.message);
       // Continue even if email fails in development
     }
@@ -533,18 +535,29 @@ exports.loginWithOTP = async (req, res) => {
       return res.status(401).json({ error: 'Account is inactive' });
     }
 
+    if (user.lockedUntil && user.lockedUntil > new Date()) {
+      return res.status(429).json({ error: 'Account temporarily locked. Try again later.' });
+    }
+
     // Verify OTP
     const verification = verifyOTP(otp, user.otpCode, user.otpExpiry);
 
     if (!verification.valid) {
+      await user.increment('failedLoginAttempts');
+      await user.reload();
+      if (user.failedLoginAttempts >= 5) {
+        await user.update({ lockedUntil: new Date(Date.now() + 15 * 60 * 1000) });
+      }
       return res.status(400).json({ error: verification.message });
     }
 
-    // Clear OTP after successful verification
+    // Clear OTP after successful verification and reset lockout
     await user.update({
       otpCode: null,
       otpExpiry: null,
-      emailVerified: true
+      emailVerified: true,
+      failedLoginAttempts: 0,
+      lockedUntil: null
     });
 
     const token = generateToken(user);
@@ -580,12 +593,8 @@ exports.forgotPassword = async (req, res) => {
 
     const user = await User.findOne({ where: { email } });
 
-    if (!user) {
-      return res.status(404).json({ error: 'No account found with this email' });
-    }
-
-    if (!user.isActive) {
-      return res.status(401).json({ error: 'Account is inactive' });
+    if (!user || !user.isActive) {
+      return res.status(200).json({ success: true, message: 'If this email exists, a reset code has been sent' });
     }
 
     // Generate OTP
@@ -593,7 +602,7 @@ exports.forgotPassword = async (req, res) => {
     const otpExpiry = getOTPExpiry(10); // 10 minutes expiry
 
     await user.update({
-      otpCode: otp,
+      otpCode: hashOTP(otp),
       otpExpiry: otpExpiry
     });
 
@@ -608,7 +617,7 @@ exports.forgotPassword = async (req, res) => {
         type: 'info',
       });
     } catch (emailError) {
-      console.log('⚠️ Email sending failed, OTP for development:', otp);
+      if (process.env.NODE_ENV !== 'production') { console.log('⚠️ Email sending failed, OTP for development:', otp); }
       console.log('⚠️ Email error:', emailError.message);
     }
 
@@ -654,6 +663,7 @@ exports.resetPassword = async (req, res) => {
       otpCode: null,
       otpExpiry: null
     });
+    await user.increment('tokenVersion');
 
     console.log('✅ Password reset successful for:', email);
     res.json({
@@ -797,57 +807,38 @@ exports.googleAuth = async (req, res) => {
 
     let email, name, picture, uid;
 
-    // Try Firebase verification first if configured, otherwise decode directly
-    if (firebaseConfigured && instructor) {
-      try {
-        const decodedToken = await instructor.auth().verifyIdToken(idToken);
-        email = decodedToken.email;
-        name = decodedToken.name;
-        picture = decodedToken.picture;
-        uid = decodedToken.uid;
-        console.log('✅ Verified as Firebase token');
-      } catch (firebaseError) {
-        console.log('❌ Firebase verification failed:', firebaseError.message);
-        // Fall through to direct Google OAuth token decode
+    // Verify Google OAuth id_token via Google's tokeninfo endpoint (cryptographic signature check)
+    try {
+      const https = require('https');
+      const tokenPayload = await new Promise((resolve, reject) => {
+        https.get(`https://oauth2.googleapis.com/tokeninfo?id_token=${idToken}`, (res) => {
+          let data = '';
+          res.on('data', chunk => { data += chunk; });
+          res.on('end', () => {
+            try {
+              const parsed = JSON.parse(data);
+              if (parsed.error_description || parsed.error) {
+                reject(new Error(parsed.error_description || parsed.error));
+              } else {
+                resolve(parsed);
+              }
+            } catch (e) { reject(e); }
+          });
+        }).on('error', reject);
+      });
+
+      // Confirm token was issued for our app (only if GOOGLE_CLIENT_ID is configured)
+      if (process.env.GOOGLE_CLIENT_ID && tokenPayload.aud !== process.env.GOOGLE_CLIENT_ID) {
+        return res.status(401).json({ error: 'Token audience mismatch' });
       }
-    }
 
-    // If Firebase didn't work or isn't configured, decode Google OAuth token directly
-    if (!email) {
-      try {
-        console.log('🔍 Decoding Google OAuth token directly...');
-        // Decode the JWT payload (Google OAuth ID token is a JWT)
-        const payload = JSON.parse(Buffer.from(idToken.split('.')[1], 'base64').toString());
-
-        console.log('📋 Token payload:', {
-          iss: payload.iss,
-          email: payload.email,
-          name: payload.name,
-          exp: payload.exp,
-          iat: payload.iat
-        });
-
-        // Verify the token is from Google
-        if (!payload.iss || (!payload.iss.includes('accounts.google.com') && !payload.iss.includes('https://accounts.google.com'))) {
-          console.log('❌ Invalid token issuer:', payload.iss);
-          return res.status(401).json({ error: 'Invalid token issuer' });
-        }
-
-        // Check if token is expired
-        if (payload.exp && payload.exp * 1000 < Date.now()) {
-          console.log('❌ Token expired. Exp:', new Date(payload.exp * 1000), 'Now:', new Date());
-          return res.status(401).json({ error: 'Token has expired' });
-        }
-
-        email = payload.email;
-        name = payload.name;
-        picture = payload.picture;
-        uid = payload.sub; // Google's subject ID
-        console.log('✅ Decoded Google OAuth token successfully');
-      } catch (decodeError) {
-        console.error('❌ Token decode error:', decodeError);
-        return res.status(401).json({ error: 'Invalid authentication token' });
-      }
+      email = tokenPayload.email;
+      name = tokenPayload.name;
+      picture = tokenPayload.picture;
+      uid = tokenPayload.sub;
+    } catch (verifyError) {
+      console.error('Google token verification failed:', verifyError.message);
+      return res.status(401).json({ error: 'Invalid or expired Google token' });
     }
 
     if (!email) {

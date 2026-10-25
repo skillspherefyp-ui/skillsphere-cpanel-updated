@@ -204,8 +204,7 @@ const dsc = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  value: {
-    fontSize: 34,
+  value: {    fontSize: 34,
     fontWeight: '900',
     marginBottom: 6,
     letterSpacing: -0.5,
@@ -856,8 +855,7 @@ const getStyles = (theme, isDark, isLargeScreen, isTablet, isMobile) =>
       justifyContent: 'center',
       alignItems: 'center',
     },
-    sectionTitle: {
-      fontSize: 18,
+    sectionTitle: {      fontSize: 18,
       fontWeight: '600',
       fontFamily: theme.typography.fontFamily.semiBold,
     },

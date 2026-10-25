@@ -7,8 +7,10 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
+import { useToast } from '../../context/ToastContext';
 import ThemeToggle from '../../components/ThemeToggle';
 import { signInWithGoogle, configureGoogleSignIn } from '../../services/googleAuthService';
+import { SplitAuthCard, MobileAuthCard } from './SplitAuthCard';
 
 const LOGO   = require('../../assets/images/skillsphere-logo.png');
 const ORANGE = '#FF8C42';
@@ -83,6 +85,7 @@ const LoginScreen = ({ navigation }) => {
   const C = getColors(isDark);
   const { width } = useWindowDimensions();
   const { login, sendLoginOTP, googleSignIn, isLoading } = useAuth();
+  const toast = useToast();
 
   const [mode, setMode]             = useState('password');
   const [email, setEmail]           = useState('');
@@ -92,7 +95,8 @@ const LoginScreen = ({ navigation }) => {
   const [sendingOTP, setSendingOTP] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
 
-  const isWeb = Platform.OS === 'web';
+  const isWeb   = Platform.OS === 'web';
+  const isSplit = isWeb && width >= 720;
 
   useEffect(() => { configureGoogleSignIn(); }, []);
 
@@ -101,7 +105,13 @@ const LoginScreen = ({ navigation }) => {
     if (!email.trim()) return setError('Please enter your email address');
     if (!password)     return setError('Please enter your password');
     const result = await login(email.trim().toLowerCase(), password);
-    if (!result.success) setError(result.error || 'Login failed. Please check your credentials.');
+    if (!result.success) {
+      if (result.error?.toLowerCase().includes('locked')) {
+        toast.error('Account Locked', 'Too many failed attempts. Try again in 15 minutes.');
+      } else {
+        setError(result.error || 'Login failed. Please check your credentials.');
+      }
+    }
   };
 
   const handleSendOTP = async () => {
@@ -134,172 +144,64 @@ const LoginScreen = ({ navigation }) => {
     } catch (err) { setGoogleLoading(false); setError('Google sign in failed. Please try again.'); }
   };
 
-  return (
-    <View style={[s.container, isWeb ? { background: C.webBg } : { backgroundColor: C.bg }]}>
-      <View style={[s.glow1, !isDark && { backgroundColor: ORANGE + '08' }]} />
-      <View style={[s.glow2, !isDark && { backgroundColor: '#6366F1' + '06' }]} />
-
-      <View style={s.topBar}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={[s.backBtn, { backgroundColor: C.backBtn }]}>
-          <Icon name="arrow-back" size={18} color={C.textPrimary} />
-        </TouchableOpacity>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-          <Image source={LOGO} style={s.logoImg} resizeMode="cover" />
-          <Text style={[s.logoText, { color: C.logoText }]}>SKILL<Text style={{ color: ORANGE }}>SPHERE</Text></Text>
+  // ─── Split layout: delegate to animated SplitAuthCard ──────────────────────
+  if (isSplit) {
+    return (
+      <View style={[s.container, { background: C.webBg }]}>
+        <View style={s.topBar}>
+          <TouchableOpacity onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Landing')} style={[s.backBtn, { backgroundColor: C.backBtn }]}>
+            <Icon name="arrow-back" size={18} color={C.textPrimary} />
+          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <Image source={LOGO} style={s.logoImg} resizeMode="cover" />
+            <Text style={[s.logoText, { color: C.logoText }]}>SKILL<Text style={{ color: ORANGE }}>SPHERE</Text></Text>
+          </View>
+          <ThemeToggle iconColor={C.textPrimary} />
         </View>
-        <ThemeToggle iconColor={C.textPrimary} />
+        <View style={s.splitOuter}>
+          <SplitAuthCard navigation={navigation} initialMode="login" isDark={isDark} />
+        </View>
       </View>
+    );
+  }
 
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
-        <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-
-          <View style={s.brandHeader}>
-            <View style={[s.iconCircle, { backgroundColor: ORANGE + '20', borderColor: ORANGE + '40' }]}>
-              <Icon name="school" size={32} color={ORANGE} />
-            </View>
-            <Text style={[s.title, { color: C.textPrimary }]}>Welcome Back</Text>
-            <Text style={[s.subtitle, { color: C.textSecondary }]}>Sign in to continue your learning journey</Text>
-          </View>
-
-          <View style={[s.card, { backgroundColor: C.cardBg, borderColor: C.cardBorder, maxWidth: 440, alignSelf: 'center', width: '100%' }]}>
-
-            {/* Mode tabs */}
-            <View style={[s.tabs, { backgroundColor: C.tabsBg }]}>
-              {[{ id: 'password', label: 'Password', icon: 'lock-closed-outline' },
-                { id: 'otp',      label: 'Email Code', icon: 'mail-outline' }].map(t => (
-                <TouchableOpacity key={t.id}
-                  style={[s.tab, mode === t.id && { backgroundColor: ORANGE }]}
-                  onPress={() => { setMode(t.id); setError(''); }} activeOpacity={0.8}>
-                  <Icon name={t.icon} size={15} color={mode === t.id ? '#FFFFFF' : C.tabInactive} />
-                  <Text style={[s.tabText, { color: mode === t.id ? '#FFFFFF' : C.tabInactive }]}>{t.label}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            {!!error && (
-              <View style={[s.errorBox, { backgroundColor: C.errorBg, borderColor: C.errorBorder }]}>
-                <Icon name="alert-circle" size={16} color="#EF4444" />
-                <Text style={s.errorText}>{error}</Text>
-              </View>
-            )}
-
-            {mode === 'password' && (
-              <>
-                <AuthInput C={C} icon="mail-outline" placeholder="Email address" value={email}
-                  onChangeText={t => { setEmail(t); setError(''); }} keyboardType="email-address" />
-                <AuthInput C={C} icon="lock-closed-outline" placeholder="Password" value={password}
-                  onChangeText={t => { setPassword(t); setError(''); }} secureTextEntry={!showPw}
-                  onSubmit={handlePasswordLogin}
-                  right={<TouchableOpacity onPress={() => setShowPw(!showPw)}>
-                    <Icon name={showPw ? 'eye-off-outline' : 'eye-outline'} size={18} color={C.inputIcon} />
-                  </TouchableOpacity>} />
-                <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')} style={{ alignSelf: 'flex-end', marginTop: -6, marginBottom: 18 }}>
-                  <Text style={{ color: ORANGE, fontSize: 13, fontWeight: '600' }}>Forgot Password?</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={s.primaryBtn} onPress={handlePasswordLogin} disabled={isLoading} activeOpacity={0.85}>
-                  {isLoading ? <ActivityIndicator color="#FFFFFF" /> : <Text style={s.primaryBtnText}>Sign In</Text>}
-                </TouchableOpacity>
-              </>
-            )}
-
-            {mode === 'otp' && (
-              <>
-                <AuthInput C={C} icon="mail-outline" placeholder="Email address" value={email}
-                  onChangeText={t => { setEmail(t); setError(''); }} keyboardType="email-address" onSubmit={handleSendOTP} />
-                <Text style={[s.otpHint, { color: C.otpHint }]}>We'll send a 6-digit code to your email</Text>
-                <TouchableOpacity style={s.primaryBtn} onPress={handleSendOTP} disabled={sendingOTP} activeOpacity={0.85}>
-                  {sendingOTP ? <ActivityIndicator color="#FFFFFF" /> : <Text style={s.primaryBtnText}>Send Verification Code</Text>}
-                </TouchableOpacity>
-              </>
-            )}
-
-            {mode === 'password' && (
-              <>
-                <View style={s.divider}>
-                  <View style={[s.divLine, { backgroundColor: C.divider }]} />
-                  <Text style={[s.divText, { color: C.dividerText }]}>or continue with</Text>
-                  <View style={[s.divLine, { backgroundColor: C.divider }]} />
-                </View>
-                <TouchableOpacity style={[s.googleBtn, { backgroundColor: C.googleBg, borderColor: C.googleBorder }]}
-                  onPress={handleGoogle} disabled={googleLoading || isLoading} activeOpacity={0.8}>
-                  {googleLoading ? <ActivityIndicator color={C.googleText} /> : (
-                    <>
-                      <Icon name="logo-google" size={18} color="#DB4437" />
-                      <Text style={[s.googleText, { color: C.googleText }]}>Continue with Google</Text>
-                    </>
-                  )}
-                </TouchableOpacity>
-              </>
-            )}
-
-            <View style={s.footer}>
-              <Text style={[s.footerText, { color: C.footerText }]}>Don't have an account? </Text>
-              <TouchableOpacity onPress={() => navigation.navigate('Signup')}>
-                <Text style={s.footerLink}>Sign Up</Text>
-              </TouchableOpacity>
-            </View>
-
-            <Text style={[s.terms, { color: C.terms }]}>
-              By signing in, you agree to our{' '}
-              <Text style={{ color: ORANGE }} onPress={() => navigation.navigate('Terms')}>Terms of Service</Text>
-              {' '}and{' '}
-              <Text style={{ color: ORANGE }} onPress={() => navigation.navigate('PrivacyPolicy')}>Privacy Policy</Text>
-            </Text>
-          </View>
-
-          <View style={{ height: 40 }} />
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </View>
-  );
+  // ─── Mobile layout ──────────────────────────────────────────────────────────
+  return <MobileAuthCard navigation={navigation} initialMode="login" isDark={isDark} />;
 };
 
 const s = StyleSheet.create({
-  container: { flex: 1 },
-  glow1: { position: 'absolute', width: 320, height: 320, borderRadius: 160, backgroundColor: ORANGE + '0C', top: -80, right: -60, zIndex: 0 },
-  glow2: { position: 'absolute', width: 250, height: 250, borderRadius: 125, backgroundColor: '#6366F1' + '0A', bottom: 40, left: -80, zIndex: 0 },
-  topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: Platform.OS === 'ios' ? 54 : 16, paddingBottom: 12, zIndex: 10 },
-  backBtn: { width: 36, height: 36, borderRadius: 18, justifyContent: 'center', alignItems: 'center' },
-  logoImg: { width: 28, height: 28, borderRadius: 7 },
-  logoText: { fontWeight: '800', fontSize: 14, letterSpacing: 1 },
-  scroll: { flexGrow: 1, paddingHorizontal: 20, paddingTop: 10, paddingBottom: 40 },
+  container:   { flex: 1 },
+  topBar:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: Platform.OS === 'ios' ? 54 : 16, paddingBottom: 12, zIndex: 10 },
+  backBtn:     { width: 36, height: 36, borderRadius: 18, justifyContent: 'center', alignItems: 'center' },
+  logoImg:     { width: 28, height: 28, borderRadius: 7 },
+  logoText:    { fontFamily: Platform.OS === 'web' ? 'Fredoka' : 'Fredoka-Bold', fontWeight: '700', fontSize: 14, letterSpacing: 1 },
+  splitOuter:  { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 24, paddingBottom: 32 },
+  // Mobile
+  scroll:      { flexGrow: 1, paddingHorizontal: 20, paddingTop: 10, paddingBottom: 40 },
   brandHeader: { alignItems: 'center', paddingVertical: 32 },
-  iconCircle: { width: 72, height: 72, borderRadius: 36, borderWidth: 2, justifyContent: 'center', alignItems: 'center', marginBottom: 18 },
-  title: { fontSize: 28, fontWeight: '900', marginBottom: 8, letterSpacing: 0.5 },
-  subtitle: { fontSize: 14, textAlign: 'center' },
-  card: { borderRadius: 24, borderWidth: 1, padding: 24 },
-  tabs: { flexDirection: 'row', borderRadius: 12, padding: 4, marginBottom: 22, gap: 4 },
-  tab: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 10, borderRadius: 9 },
-  tabText: { fontSize: 13, fontWeight: '700' },
-  errorBox: { flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: 10, borderWidth: 1, padding: 12, marginBottom: 14 },
-  errorText: { flex: 1, color: '#EF4444', fontSize: 13 },
-  inputWrap: { flexDirection: 'row', alignItems: 'center', gap: 10, borderRadius: 12, borderWidth: 1, paddingHorizontal: 14, paddingVertical: 13, marginBottom: 14 },
-  inputField: { flex: 1, fontSize: 14, outlineStyle: 'none' },
-  otpHint: { fontSize: 13, textAlign: 'center', marginTop: -4, marginBottom: 16, lineHeight: 20 },
-  primaryBtn: {
-    height: 52,
-    borderRadius: 12,
-    backgroundColor: '#F68B3C',
-    borderWidth: 1,
-    borderColor: '#E77828',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#C96A24',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.16,
-    shadowRadius: 6,
-    elevation: 3,
-  },
-  primaryBtnText: { color: '#FFFFFF', fontSize: 15, fontWeight: '700', letterSpacing: 0.1 },
-  divider: { flexDirection: 'row', alignItems: 'center', gap: 12, marginVertical: 22 },
-  divLine: { flex: 1, height: 1 },
-  divText: { fontSize: 12 },
-  googleBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, height: 50, borderRadius: 12, borderWidth: 1 },
-  googleText: { fontSize: 14, fontWeight: '600' },
-  footer: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 24 },
-  footerText: { fontSize: 14 },
-  footerLink: { color: '#F68B3C', fontSize: 14, fontWeight: '700' },
-  terms: { fontSize: 11, textAlign: 'center', lineHeight: 18, marginTop: 16 },
+  iconCircle:  { width: 72, height: 72, borderRadius: 36, borderWidth: 2, justifyContent: 'center', alignItems: 'center', marginBottom: 18 },
+  title:       { fontSize: 28, fontWeight: '900', marginBottom: 8, letterSpacing: 0.5 },
+  subtitle:    { fontSize: 14, textAlign: 'center' },
+  card:        { borderRadius: 24, borderWidth: 1, padding: 24 },
+  tabs:        { flexDirection: 'row', borderRadius: 9999, padding: 4, marginBottom: 16, gap: 4 },
+  tab:         { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 8, borderRadius: 9999 },
+  tabText:     { fontSize: 13, fontWeight: '700' },
+  errorBox:    { flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: 10, borderWidth: 1, padding: 12, marginBottom: 14 },
+  errorText:   { flex: 1, color: '#EF4444', fontSize: 13 },
+  inputWrap:   { flexDirection: 'row', alignItems: 'center', gap: 10, borderRadius: 16, borderWidth: 1.5, paddingHorizontal: 14, paddingVertical: 12, marginBottom: 12 },
+  inputField:  { flex: 1, fontSize: 14, outlineStyle: 'none' },
+  otpHint:     { fontSize: 13, textAlign: 'center', marginTop: -4, marginBottom: 16, lineHeight: 20 },
+  primaryBtn:  { borderRadius: 9999, backgroundColor: ORANGE, borderWidth: 1, borderColor: '#E07028', alignSelf: 'center', paddingHorizontal: 28, paddingVertical: 10, shadowColor: '#C96A24', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.28, shadowRadius: 12, elevation: 5 },
+  primaryBtnText: { color: '#FFFFFF', fontSize: 15, fontWeight: '800', letterSpacing: 0.5 },
+  divider:     { flexDirection: 'row', alignItems: 'center', gap: 12, marginVertical: 10 },
+  divLine:     { flex: 1, height: 1 },
+  divText:     { fontSize: 12 },
+  googleBtn:   { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, alignSelf: 'center', paddingHorizontal: 18, paddingVertical: 8, borderRadius: 9999, borderWidth: 1.5 },
+  googleText:  { fontSize: 13, fontWeight: '700' },
+  footer:      { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 24 },
+  footerText:  { fontSize: 14 },
+  footerLink:  { color: '#F68B3C', fontSize: 14, fontWeight: '700' },
+  terms:       { fontSize: 11, textAlign: 'center', lineHeight: 18, marginTop: 16 },
 });
 
 export default LoginScreen;

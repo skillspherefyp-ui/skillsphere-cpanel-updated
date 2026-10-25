@@ -1,0 +1,65 @@
+# ============================================================
+#  SkillSphere — public_html/.htaccess
+#  Serves the React web build AND reverse-proxies the API
+#  to the Node app running on port 5000 (via PM2).
+# ============================================================
+
+RewriteEngine On
+
+# ------------------------------------------------------------
+# 1) Force HTTPS
+# ------------------------------------------------------------
+RewriteCond %{HTTPS} off
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# ------------------------------------------------------------
+# 2) Reverse proxy — send backend paths to the Node app (port 5000)
+#    These paths never exist as files in public_html.
+# ------------------------------------------------------------
+RewriteRule ^api/(.*)$   http://127.0.0.1:5000/api/$1   [P,L]
+RewriteRule ^health$     http://127.0.0.1:5000/health   [P,L]
+
+# Forward /uploads to the backend ONLY if it's not a real file here
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^uploads/(.*)$  http://127.0.0.1:5000/uploads/$1  [P,L]
+
+# ------------------------------------------------------------
+# 3) React SPA fallback
+#    Serve the real file if it exists, otherwise hand off to index.html
+#    so client-side routing (login, dashboard, etc.) works on refresh.
+# ------------------------------------------------------------
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.html [L]
+
+# ------------------------------------------------------------
+# 4) Gzip compression
+# ------------------------------------------------------------
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/css text/javascript application/javascript application/json application/xml image/svg+xml
+</IfModule>
+
+# ------------------------------------------------------------
+# 5) Cache static assets (but never cache index.html)
+# ------------------------------------------------------------
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/css                "access plus 1 year"
+  ExpiresByType application/javascript  "access plus 1 year"
+  ExpiresByType image/png               "access plus 1 year"
+  ExpiresByType image/jpeg              "access plus 1 year"
+  ExpiresByType image/svg+xml           "access plus 1 year"
+  ExpiresByType image/x-icon            "access plus 1 year"
+  ExpiresByType font/woff2              "access plus 1 year"
+</IfModule>
+
+<IfModule mod_headers.c>
+  # Do not cache the HTML shell so users always get the latest app
+  <FilesMatch "index\.html$">
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+  </FilesMatch>
+  # Basic security headers
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>

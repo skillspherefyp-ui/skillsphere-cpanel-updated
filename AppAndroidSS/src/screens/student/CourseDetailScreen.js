@@ -118,7 +118,7 @@ const CourseDetailScreen = () => {
   const route = useRoute();
   const { courseId: _courseId } = route.params;
   const courseId = typeof _courseId === 'string' ? parseInt(_courseId, 10) : _courseId;
-  const { courses, enrollments, enrollInCourse, unenrollFromCourse, checkEnrollment, fetchMyEnrollments } = useData();
+  const { courses, enrollments, enrollInCourse, unenrollFromCourse, checkEnrollment, fetchMyEnrollments, getCourseById } = useData();
   const { user, logout } = useAuth();
   const { theme, isDark } = useTheme();
   const { width } = useWindowDimensions();
@@ -130,13 +130,15 @@ const CourseDetailScreen = () => {
   const [enrolling, setEnrolling] = useState(false);
   const [unenrolling, setUnenrolling] = useState(false);
   const [shareVisible, setShareVisible] = useState(false);
+  const [localCourse, setLocalCourse] = useState(null);
+  const [fetchingCourse, setFetchingCourse] = useState(false);
 
   const isWeb = Platform.OS === 'web';
   const isLargeScreen = width > 1024;
   const isTablet = width > 768;
   const isMobile = width <= 480;
 
-  const course = courses.find(c => c.id === courseId);
+  const course = courses.find(c => c.id === courseId) || localCourse;
 
   // Student sidebar navigation items
   const sidebarItems = getSidebarItems(user?.role);
@@ -178,6 +180,16 @@ const CourseDetailScreen = () => {
 
   useEffect(() => {
     loadData();
+  }, [courseId]);
+
+  // If this course is not in DataContext (e.g. beyond page-1 limit), fetch it individually.
+  useEffect(() => {
+    if (!courses.find(c => c.id === courseId) && courseId) {
+      setFetchingCourse(true);
+      getCourseById(courseId)
+        .then(res => { if (res.success && res.course) setLocalCourse(res.course); })
+        .finally(() => setFetchingCourse(false));
+    }
   }, [courseId]);
 
   useFocusEffect(
@@ -326,6 +338,28 @@ const CourseDetailScreen = () => {
 
   // Loading state
   if (loading) {
+    return (
+      <MainLayout
+        showSidebar={true}
+        sidebarItems={sidebarItems}
+        activeRoute="Courses"
+        onNavigate={handleNavigate}
+        userInfo={{ name: user?.name, role: 'Student', avatar: user?.avatar }}
+        onLogout={logout}
+        onSettings={() => navigation.navigate('Settings')}
+      >
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={theme.colors.primary} />
+          <Text style={[styles.loadingText, { color: theme.colors.textSecondary }]}>
+            Loading course details...
+          </Text>
+        </View>
+      </MainLayout>
+    );
+  }
+
+  // Still fetching individual course — show spinner instead of "not found"
+  if (fetchingCourse && !course) {
     return (
       <MainLayout
         showSidebar={true}
@@ -543,14 +577,14 @@ const CourseDetailScreen = () => {
                 {progress >= 100 && (
                   <TouchableOpacity
                     style={[styles.certificateLink, { backgroundColor: '#10B98115' }]}
-                    onPress={() => navigation.navigate('CertificatePreview', {
+                    onPress={() => navigation.navigate('CourseFeedback', {
                       courseId: course.id,
                       courseName: course.name,
                     })}
                   >
                     <Icon name="ribbon" size={20} color="#10B981" />
                     <Text style={[styles.certificateLinkText, { color: '#10B981' }]}>
-                      Get my certificate
+                      Rate & Get Certificate
                     </Text>
                     <Icon name="chevron-forward" size={18} color="#10B981" />
                   </TouchableOpacity>
@@ -1009,8 +1043,7 @@ const getStyles = (theme, isDark, isLargeScreen, isTablet, isMobile) =>
     bannerTextGroup: {
       flex: 1,
     },
-    pageTitle: {
-      fontSize: isMobile ? 18 : 22,
+    pageTitle: {      fontSize: isMobile ? 18 : 22,
       fontWeight: '700',
       fontFamily: theme.typography.fontFamily.bold,
       marginBottom: 2,
@@ -1119,8 +1152,7 @@ const getStyles = (theme, isDark, isLargeScreen, isTablet, isMobile) =>
       alignItems: 'center',
       marginBottom: 16,
     },
-    cardTitle: {
-      fontSize: 16,
+    cardTitle: {      fontSize: 16,
       fontWeight: '700',
       marginBottom: 16,
       fontFamily: theme.typography.fontFamily.semiBold,
@@ -1143,8 +1175,7 @@ const getStyles = (theme, isDark, isLargeScreen, isTablet, isMobile) =>
       fontSize: 14,
       fontWeight: '500',
     },
-    progressValue: {
-      fontSize: 20,
+    progressValue: {      fontSize: 20,
       fontWeight: '700',
     },
     progressBarBg: {

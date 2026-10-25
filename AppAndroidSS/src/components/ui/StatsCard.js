@@ -1,185 +1,170 @@
 import React from 'react';
-import { View, Text, StyleSheet, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Platform, useWindowDimensions } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useTheme } from '../../context/ThemeContext';
 
-// Section 14 - Stats & Metrics
-// Stats Cards: Icon + Value + Label, Consistent padding (20px)
-
+/**
+ * StatCard — horizontal compact card with optional filter behaviour.
+ *
+ * Props:
+ *   icon        string   Ionicons name
+ *   color       string   Accent hex colour (tints bg, icon, value, bar)
+ *   value       any      Main number / text to display
+ *   label       string   Small label below the value
+ *   ratio       number   0-1  — fills the thin progress bar (optional)
+ *   onPress     fn       Makes card tappable (filter shortcut etc.)
+ *   isActive    bool     Highlights card as currently-selected filter
+ *   style       obj      Extra container overrides
+ */
 const StatsCard = ({
   icon,
+  color,
   iconColor,
   value,
   label,
-  change,       // { value: '+12%', type: 'increase' | 'decrease' }
+  ratio,
+  onPress,
+  isActive = false,
   style,
-  variant = 'default', // default, gradient, outlined
+  change,
+  variant,
 }) => {
   const { theme, isDark } = useTheme();
+  const { width } = useWindowDimensions();
   const isWeb = Platform.OS === 'web';
 
-  const getBackgroundStyle = () => {
-    if (variant === 'outlined') {
-      return {
-        backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(26,26,46,0.02)',
-        borderWidth: 1,
-        borderColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(26,26,46,0.10)',
-      };
-    }
-    if (variant === 'gradient') {
-      return {
-        backgroundColor: isDark ? 'rgba(99,102,241,0.15)' : 'rgba(99,102,241,0.08)',
-        borderWidth: 1,
-        borderColor: isDark ? 'rgba(99,102,241,0.25)' : 'rgba(99,102,241,0.15)',
-      };
-    }
-    // default
-    return {
-      backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.90)',
-      borderWidth: 1,
-      borderColor: isDark ? 'rgba(255,255,255,0.10)' : 'rgba(26,26,46,0.08)',
-      ...(isWeb ? { backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' } : {}),
-      ...(isWeb && !isDark ? { boxShadow: '0 4px 20px rgba(0,0,0,0.08)' } : {}),
-    };
-  };
+  // Compact mode when the card will be one of 3 in a narrow row
+  const isMobile = width <= 480;
 
-  const iconBgColor = iconColor
-    ? `${iconColor}20`
-    : isDark
-      ? theme.colors.backgroundTertiary
-      : theme.colors.backgroundSecondary;
+  const accent = color || iconColor || theme.colors.primary;
+  const tint   = `${accent}18`;
+  const tintMd = `${accent}30`;
 
-  const iconDisplayColor = iconColor || theme.colors.primary;
+  const cardStyle = [
+    styles.container,
+    {
+      backgroundColor: isActive
+        ? (isDark ? tintMd : `${accent}12`)
+        : (isDark ? 'rgba(255,255,255,0.05)' : '#FFFFFF'),
+      borderWidth: isActive ? 1.5 : 1,
+      borderColor: isActive
+        ? accent
+        : (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(26,26,46,0.08)'),
+      paddingHorizontal: isMobile ? 10 : 14,
+      paddingVertical:   isMobile ? 10 : 14,
+      gap:               isMobile ? 8  : 12,
+    },
+    isWeb && !isDark && !isActive ? { boxShadow: '0 2px 12px rgba(0,0,0,0.06)' } : {},
+    style,
+  ];
 
-  const changeColor = change?.type === 'increase' ? theme.colors.success : theme.colors.error;
+  const Wrapper = onPress ? TouchableOpacity : View;
+  const wrapperProps = onPress ? { activeOpacity: 0.75, onPress } : {};
+
+  const fill = Math.min(1, Math.max(0, ratio ?? 0));
+
+  const iconSize   = isMobile ? 16 : 20;
+  const circleSize = isMobile ? 32 : 42;
+  const valueSz    = isMobile ? 16 : 22;
+  const labelSz    = isMobile ? 10 : 12;
 
   return (
-    <View
-      style={[
-        styles.container,
-        getBackgroundStyle(),
-        theme.shadows.sm,
-        style,
-      ]}
-    >
-      {/* Icon */}
-      <View style={[styles.iconContainer, { backgroundColor: iconBgColor }]}>
-        <Icon name={icon} size={24} color={iconDisplayColor} />
+    <Wrapper style={cardStyle} {...wrapperProps}>
+      {/* Left: icon circle */}
+      <View style={[
+        styles.iconCircle,
+        { backgroundColor: tint, width: circleSize, height: circleSize, borderRadius: circleSize / 2 },
+      ]}>
+        <Icon name={icon} size={iconSize} color={accent} />
       </View>
 
-      {/* Value */}
-      <Text
-        style={[
-          styles.value,
-          {
-            color: theme.colors.textPrimary,
-            fontFamily: theme.typography.fontFamily.bold,
-          },
-        ]}
-      >
-        {value}
-      </Text>
-
-      {/* Label */}
-      <Text
-        style={[
-          styles.label,
-          {
-            color: theme.colors.textSecondary,
-            fontFamily: theme.typography.fontFamily.regular,
-          },
-        ]}
-      >
-        {label}
-      </Text>
-
-      {/* Change indicator */}
-      {change && (
-        <View
-          style={[
-            styles.changeContainer,
-            { backgroundColor: `${changeColor}18` },
-          ]}
+      {/* Middle: value + label */}
+      <View style={styles.textGroup}>
+        <Text
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.7}
+          style={[styles.value, { color: accent, fontSize: valueSz, lineHeight: valueSz + 4 }]}
         >
-          <Icon
-            name={change.type === 'increase' ? 'arrow-up' : 'arrow-down'}
-            size={12}
-            color={changeColor}
-          />
-          <Text
-            style={[
-              styles.changeText,
-              {
-                color: changeColor,
-                fontFamily: theme.typography.fontFamily.medium,
-              },
-            ]}
-          >
-            {change.value}
-          </Text>
+          {value}
+        </Text>
+        <Text
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.75}
+          style={[styles.label, { color: theme.colors.textSecondary, fontSize: labelSz }]}
+        >
+          {label}
+        </Text>
+
+        {ratio !== undefined && (
+          <View style={[styles.barTrack, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(26,26,46,0.07)' }]}>
+            <View style={[styles.barFill, { width: `${fill * 100}%`, backgroundColor: accent }]} />
+          </View>
+        )}
+      </View>
+
+      {/* Active filter chip — hide on mobile to save space */}
+      {isActive && !isMobile && (
+        <View style={[styles.activeChip, { backgroundColor: tint }]}>
+          <Icon name="funnel" size={11} color={accent} />
         </View>
       )}
-    </View>
+    </Wrapper>
   );
 };
 
-// Stats Grid - Container for multiple stats cards
-export const StatsGrid = ({ children, columns = 4, style }) => {
-  return (
-    <View style={[styles.grid, { gap: 16 }, style]}>
-      {React.Children.map(children, (child) => (
-        <View style={[styles.gridItem, { flexBasis: `${100 / columns}%` }]}>
-          {child}
-        </View>
-      ))}
-    </View>
-  );
-};
+export const StatsGrid = ({ children, columns = 4, style }) => (
+  <View style={[{ flexDirection: 'row', flexWrap: 'wrap', gap: 16 }, style]}>
+    {React.Children.map(children, (child) => (
+      <View style={{ flexBasis: `${100 / columns}%`, paddingHorizontal: 8, marginBottom: 16 }}>
+        {child}
+      </View>
+    ))}
+  </View>
+);
 
 const styles = StyleSheet.create({
   container: {
-    padding: 20, // Section 14: Consistent padding 20px
-    borderRadius: 16, // Section 3.1: Cards 16px
+    flex: 1,
+    minWidth: 0,
+    flexDirection: 'row',
     alignItems: 'center',
-    minWidth: 140,
+    borderRadius: 14,
   },
-  iconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: 'center',
+  iconCircle: {
     alignItems: 'center',
-    marginBottom: 12,
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  textGroup: {
+    flex: 1,
+    gap: 2,
+    minWidth: 0,
   },
   value: {
-    fontSize: 28, // Section 5.2: H1 size for emphasis
-    fontWeight: '700',
-    marginBottom: 4,
+    fontWeight: '800',
   },
   label: {
-    fontSize: 13, // Section 5.2: Small Text 13px
-    textAlign: 'center',
-  },
-  changeContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 8,
-    gap: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 20,
-  },
-  changeText: {
-    fontSize: 12,
     fontWeight: '500',
   },
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+  barTrack: {
+    height: 3,
+    borderRadius: 2,
+    marginTop: 5,
+    overflow: 'hidden',
   },
-  gridItem: {
-    paddingHorizontal: 8,
-    marginBottom: 16,
+  barFill: {
+    height: 3,
+    borderRadius: 2,
+  },
+  activeChip: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
   },
 });
 

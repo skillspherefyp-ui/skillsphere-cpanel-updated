@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, useWindowDimensions } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, useWindowDimensions, Platform} from 'react-native';
 import MainLayout from '../../components/ui/MainLayout';
 import AppCard from '../../components/ui/AppCard';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -66,8 +66,7 @@ const CategoriesScreen = () => {
     bannerTextGroup: {
       flex: 1,
     },
-    bannerTitle: {
-      fontSize: 20,
+    bannerTitle: {      fontSize: 20,
       fontWeight: '700',
       color: theme.colors.textPrimary,
       marginBottom: 2,

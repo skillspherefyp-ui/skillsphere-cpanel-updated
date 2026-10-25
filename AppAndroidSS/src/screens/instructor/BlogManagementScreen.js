@@ -50,8 +50,6 @@ const BlogManagementScreen = () => {
   const handleNavigate = (route) => {
     if (route === 'ManageInstructors') {
       navigation.navigate('ManageUsers', { userType: 'instructor' });
-    } else if (route === 'ManageExperts') {
-      navigation.navigate('ManageUsers', { userType: 'expert' });
     } else if (route === 'Categories') {
       navigation.navigate('CategoryManagement');
     } else {
@@ -394,8 +392,7 @@ const getStyles = (theme, isDark, isTablet, isMobile) =>
       justifyContent: 'center', alignItems: 'center',
     },
     bannerTextGroup: { flex: 1 },
-    pageTitle: {
-      fontSize: isMobile ? 18 : 22,
+    pageTitle: {      fontSize: isMobile ? 18 : 22,
       fontWeight: '700',
       fontFamily: theme.typography?.fontFamily?.bold,
       marginBottom: 2,

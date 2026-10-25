@@ -1,8 +1,14 @@
 // OTP Utility Functions
+const crypto = require('crypto');
 
-// Generate a random 6-digit OTP
+// Generate a cryptographically secure random 6-digit OTP
 const generateOTP = () => {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  return crypto.randomInt(100000, 1000000).toString();
+};
+
+// Hash OTP with SHA-256 for secure storage
+const hashOTP = (otp) => {
+  return crypto.createHash('sha256').update(otp).digest('hex');
 };
 
 // Get OTP expiry time (10 minutes from now)
@@ -28,8 +34,13 @@ const verifyOTP = (inputOTP, storedOTP, expiryDate) => {
     return { valid: false, message: 'Invalid OTP format. Must be 6 digits.' };
   }
 
-  // Check if OTP matches
-  if (inputOTP !== storedOTP) {
+  // Check if OTP matches (timing-safe comparison against stored hash)
+  const inputHash = crypto.createHash('sha256').update(inputOTP).digest('hex');
+  try {
+    if (!crypto.timingSafeEqual(Buffer.from(inputHash), Buffer.from(storedOTP))) {
+      return { valid: false, message: 'Invalid OTP code.' };
+    }
+  } catch {
     return { valid: false, message: 'Invalid OTP code.' };
   }
 
@@ -43,6 +54,7 @@ const verifyOTP = (inputOTP, storedOTP, expiryDate) => {
 
 module.exports = {
   generateOTP,
+  hashOTP,
   getOTPExpiry,
   isOTPExpired,
   isValidOTPFormat,
