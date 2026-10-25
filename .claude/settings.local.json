@@ -1,8 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(cd \"D:/skillsphere design Project part 2/backend\" && node -e \"\nconst { sequelize } = require\\('./models'\\);\nsequelize.query\\('ALTER TABLE discussion_posts MODIFY COLUMN courseId INT NULL;'\\)\n  .then\\(\\(\\) => { console.log\\('✅ courseId column now allows NULL'\\); process.exit\\(0\\); }\\)\n  .catch\\(err => { console.error\\('❌', err.message\\); process.exit\\(1\\); }\\);\n\")",
-      "Bash(grep -rn \"ExpoManifest\\\\|expoManifest\\\\|createExpoManifest\" \"D:/skill-sphere-Cpanel-main/node_modules/expo-modules-core/android/\" --include=\"*.gradle\" 2>/dev/null | head -20)"
-    ]
-  }
-}
